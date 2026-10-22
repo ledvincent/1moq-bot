@@ -6,7 +6,7 @@
 ## Project
 - What it is: TODO one sentence
 - Stack: TODO language, framework, database, hosting (with versions)
-- Jira project key: 1MOQ
+- Jira project key: MOQ
 
 ## Commands
 - Install: TODO
