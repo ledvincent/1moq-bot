@@ -4,13 +4,13 @@
 # The last matching line wins. One owner's approval satisfies a line.
 
 # Behaviour: the BA or the Architect approves proposals and spec changes.
-/openspec/                 @BA-TEAM @ARCHITECT-TEAM
+/openspec/                 @ledvincent
 
 # Knowledge: decisions and architecture belong to the architects.
-/okf/                      @BA-TEAM @ARCHITECT-TEAM
-/okf/decisions/            @ARCHITECT-TEAM
-/okf/architecture/         @ARCHITECT-TEAM
+/okf/                      @ledvincent
+/okf/decisions/            @ledvincent
+/okf/architecture/         @ledvincent
 
 # The workflow itself: the tech lead.
-/.claude/                  @TECH-LEAD
-/.github/                  @TECH-LEAD
+/.claude/                  @ledvincent
+/.github/                  @ledvincent
