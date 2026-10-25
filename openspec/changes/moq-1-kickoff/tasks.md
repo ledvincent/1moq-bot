@@ -11,13 +11,13 @@ The kickoff writes knowledge, not code: these are the foundation tasks, done onc
 
 One file per decision marked "Decision record needed" in design.md, each with `Change:` pointing to `openspec/changes/archive/moq-1-kickoff-<date>/`.
 
-- [ ] 2.1 Write `okf/decisions/MOQ-1-cloud-web-service.md` (D1: the page is served by an always-on web service in the cloud, EU region)
+- [ ] 2.1 Write `okf/decisions/MOQ-1-cloud-web-service.md` (D1: the page is served by an always-on web service on a small EU server, within the €10 monthly budget)
 - [ ] 2.2 Write `okf/decisions/MOQ-1-typescript-stack.md` (D2: TypeScript on Node.js, Fastify, React, one deployable)
 - [ ] 2.3 Write `okf/decisions/MOQ-1-postgresql-store-and-queue.md` (D3: PostgreSQL as the only store, holding the job queue)
 - [ ] 2.4 Write `okf/decisions/MOQ-1-send-gate.md` (D4: every email checked at the moment it is sent)
 - [ ] 2.5 Write `okf/decisions/MOQ-1-company-mailbox-sending.md` (D5: send and read through the company mailbox, personal emails, no tracking)
 - [ ] 2.6 Write `okf/decisions/MOQ-1-lead-source-policy.md` (D6: official APIs or a provider's API only, never the company's Instagram account, polite website reading)
-- [ ] 2.7 Write `okf/decisions/MOQ-1-claude-for-ai.md` (D7: Claude through the Anthropic API, extraction kept apart from writing, output checks)
+- [ ] 2.7 Write `okf/decisions/MOQ-1-claude-for-ai.md` (D7: Claude Haiku 5.5 through the Anthropic API, Batch API and caching, extraction kept apart from writing, output checks)
 - [ ] 2.8 Write `okf/decisions/MOQ-1-personal-data-handling.md` (D8: EU hosting, minimal data with sources, hashed do-not-contact list, retention)
 
 ## 3. Domain terms
@@ -26,7 +26,7 @@ One file per decision marked "Decision record needed" in design.md, each with `C
 - [ ] 3.2 Write `okf/domain/client-types.md`: the 13 client types with what each buys, typical order, who decides and the hook (from the proposal's summary, no past-client names), and "Other"
 - [ ] 3.3 Write `okf/domain/qualification-rules.md`: the five fit rules and how they give the fit level (good, possible, poor)
 - [ ] 3.4 Write `okf/domain/markets.md`: the market phases (EU, UK and Australia; then Singapore; then the US), the active markets setting, and French for French-speaking leads
-- [ ] 3.5 Write `okf/domain/outreach-sequence.md`: the steps and days (intro day 1, DM day 3 by hand, follow-ups days 6 and 12, last email day 21), the 9:00 to 10:00 local window, the daily limits and the stop rules
+- [ ] 3.5 Write `okf/domain/outreach-sequence.md`: the steps and days (intro day 1, DM day 3 by hand, follow-ups days 6 and 12, last email day 21), how days count from the intro actually sent, the send window and sending days per client type, Send now, the daily limits and the stop rules
 - [ ] 3.6 Write `okf/domain/lead-status.md`: each status and what moves a lead from one to the next
 - [ ] 3.7 Write `okf/domain/base-templates.md`: one per client type, step and language; the personal line rule; templates live in the app's data, not in the repo
 - [ ] 3.8 Write `okf/domain/do-not-contact-list.md`: what puts an address on it (link, mail-app header, a request recorded by the owner, erasure), and that it is never emptied

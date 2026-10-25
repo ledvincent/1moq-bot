@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Sends the outreach emails and follow-ups from the company mailbox to approved leads only, at the right local time and in small daily numbers, and stops as soon as a lead replies or opts out.
+Sends the outreach emails and follow-ups from the company mailbox to approved leads only, in each client type's local send window on its sending days and in small daily numbers, lets the owner send a queued email at once, and stops as soon as a lead replies or opts out.
 
 ## ADDED Requirements
 
@@ -18,11 +18,23 @@ The system SHALL send email only to leads the owner approved, and SHALL check th
 - **THEN** that email is not sent
 
 ### Requirement: Outreach sequence
-The system SHALL take each approved lead that has an email address through the sequence: intro email on day 1, follow-up 1 on day 6, follow-up 2 on day 12 and a last email on day 21. No email SHALL be sent after the last one.
+The system SHALL take each approved lead that has an email address through the sequence: intro email on day 1, follow-up 1 on day 6, follow-up 2 on day 12 and a last email on day 21. Day 1 SHALL be the day the intro email was actually sent, and every later step SHALL count from it. A step that falls on a day its lead's client type does not send SHALL move to the next sending day. Each email SHALL be sent at least 3 days after the previous one. No email SHALL be sent after the last one.
 
 #### Scenario: Follow-up on day 6
 - **WHEN** a lead got its intro email on day 1 and has not replied
 - **THEN** follow-up 1 is sent on day 6
+
+#### Scenario: Days count from the intro actually sent
+- **WHEN** a lead approved on Monday gets its intro email on Wednesday because of the daily limit
+- **THEN** Wednesday is day 1 and follow-up 1 is due on the following Monday
+
+#### Scenario: Step moved off a non-sending day
+- **WHEN** a café's follow-up falls on a Sunday
+- **THEN** it is sent on the Monday after
+
+#### Scenario: Minimum gap between emails
+- **WHEN** a moved step would come less than 3 days after the previous email
+- **THEN** it waits until 3 days have passed
 
 #### Scenario: Sequence ends after the last email
 - **WHEN** the last email has been sent to a lead
@@ -46,20 +58,62 @@ The system SHALL NOT plan any email for an approved lead that has no email addre
 - **WHEN** the owner approves a lead marked "no email found"
 - **THEN** no email is planned and the lead appears in the list of leads to contact by hand
 
-### Requirement: Morning send window
-The system SHALL send each email between 9:00 and 10:00 in the lead's time zone. An email that misses the window SHALL wait for the next day's window. A lead with no time zone SHALL NOT be scheduled.
+### Requirement: Send window per client type
+The system SHALL send each email inside the one-hour window of its lead's client type, in the lead's time zone, and the owner SHALL be able to change each window. By default it is 8:00 to 9:00 for cafés and roasters, bars and restaurants, and breweries, and 9:00 to 10:00 for the other types. A due email SHALL wait for its window, or for the next sending day's window if it missed it. A lead with no time zone SHALL NOT be scheduled.
 
-#### Scenario: Sent in the lead's morning
-- **WHEN** an email is due for a lead in Melbourne
-- **THEN** it is sent between 9:00 and 10:00 Melbourne time
+#### Scenario: Café sent at opening time
+- **WHEN** an email is due for a café in Melbourne
+- **THEN** it is sent between 8:00 and 9:00 Melbourne time
+
+#### Scenario: Other type in the default window
+- **WHEN** an email is due for a gym in London
+- **THEN** it is sent between 9:00 and 10:00 London time
+
+#### Scenario: Owner changes a window
+- **WHEN** the owner sets the window of breweries to 10:00 to 11:00
+- **THEN** the emails due for breweries from then on are sent between 10:00 and 11:00 in each lead's time zone
 
 #### Scenario: Window missed
-- **WHEN** an email due today could not go out before 10:00 in the lead's time zone
-- **THEN** it is sent in the 9:00 to 10:00 window of a later day
+- **WHEN** an email due today could not go out before its window closed
+- **THEN** it is sent in the window of a later sending day
 
 #### Scenario: No time zone
 - **WHEN** an approved lead has no time zone
 - **THEN** no email is scheduled for it and it is flagged for the owner
+
+### Requirement: Sending days
+The system SHALL send email from Monday to Friday for every client type, and on Saturday only for the client types whose Saturday switch is on, judged in the lead's time zone. Each client type SHALL have a Saturday switch the owner can change: on by default for cafés and roasters, bars and restaurants, and breweries, and off for every other type. No email SHALL be sent on Sunday.
+
+#### Scenario: Café on Saturday
+- **WHEN** an email is due on a Saturday for a café, and the Saturday switch of cafés is on
+- **THEN** it is sent in that Saturday's window
+
+#### Scenario: Other type on Saturday
+- **WHEN** an email is due on a Saturday for an indie clothing brand, and the Saturday switch of indie clothing brands is off
+- **THEN** it is sent in the window of the next Monday
+
+#### Scenario: Never on Sunday
+- **WHEN** an email is due on a Sunday for any client type
+- **THEN** it is not sent that day
+
+### Requirement: Send now
+The system SHALL let the owner send a queued email at once. Send now SHALL skip only the send window, the sending days and the spacing between sends: every other check made before a send, and the daily limits, SHALL still apply. The email SHALL leave the queue as it is sent and SHALL never be sent twice.
+
+#### Scenario: Sent outside the window
+- **WHEN** the owner presses Send now on a queued intro email at 15:00 in the lead's time zone
+- **THEN** the email is sent at once and leaves the queue
+
+#### Scenario: Never sent twice
+- **WHEN** the owner presses Send now on an email at the moment its window opens
+- **THEN** the email is sent exactly once
+
+#### Scenario: Refused at the daily limit
+- **WHEN** the owner presses Send now on an intro email after the daily intro limit has been reached
+- **THEN** the email is not sent, stays in the queue, and the owner is told the limit is reached
+
+#### Scenario: Refused after a reply
+- **WHEN** the owner presses Send now on a follow-up for a lead that has replied
+- **THEN** the email is not sent
 
 ### Requirement: Daily limits
 The system SHALL send no more new intro emails in a day than the daily intro limit (25 by default), and no more emails in total, follow-ups included, than the daily total limit. Emails over a limit SHALL wait for a later day, oldest first. Emails SHALL be spaced out, never sent in a burst.

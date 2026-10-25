@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Lets the owner open the tool on their Mac like a web page, with no terminal, while keeping the tool and the lead data closed to anyone but the owner and the developer.
+Lets the owner open the tool on their Mac like a web page, with no terminal, while keeping the tool and the lead data closed to anyone but the owner.
 
 ## ADDED Requirements
 
@@ -24,11 +24,11 @@ The system SHALL require a signed-in user for every page and action, except the 
 - **WHEN** a lead opens the unsubscribe link from an email
 - **THEN** the unsubscribe page opens without asking anyone to sign in
 
-### Requirement: Known people only
-The system SHALL let only the accounts set up for the owner and the developer sign in.
+### Requirement: Owner only
+The system SHALL have a single account, the owner's, and SHALL let no one else sign in. The developer maintains the tool through the server, not through an account in the tool.
 
 #### Scenario: Unknown person refused
-- **WHEN** a person without an account set up tries to sign in
+- **WHEN** anyone other than the owner tries to sign in
 - **THEN** the sign-in is refused
 
 ### Requirement: Stay signed in

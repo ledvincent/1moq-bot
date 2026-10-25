@@ -11,12 +11,13 @@
 
 **Goals:**
 - One system that the owner opens from the Dock and that the developer updates without touching the Mac.
-- Guarantees that hold by construction, not by care: no email without an approval that still stands; no email after a reply, opt-out or bounce; never above the daily limits; never outside 9:00 to 10:00 in the lead's time zone.
+- Guarantees that hold by construction, not by care: no email without an approval that still stands; no email after a reply, opt-out or bounce; never above the daily limits; never outside the client type's send window and sending days in the lead's time zone, except an email the owner sends now.
+- Low running costs: at most €10 a month for everything the tool runs on (server, backups, AI, data APIs), the company mailbox excluded. Each paid service is justified in its own ticket.
 - Every lead source, provider, AI call and the mailbox behind a small interface, so a vendor can change inside its own ticket.
 - Everything testable without real services: fakes for sources, Instagram, the AI and the mailbox.
 
 **Non-Goals:**
-- Several companies or many users: one company, two accounts (owner, developer).
+- Several companies or many users: one company, one account (the owner's). The developer works on the server, not through an account.
 - A mail client: replies are read and answered in the company mailbox; the tool only notices them.
 - Scale beyond hundreds of leads a week.
 - A native Mac app.
@@ -29,13 +30,13 @@
 Owner's Mac: Safari or Chrome, bookmark or Dock web app
         |  HTTPS, signed-in session
         v
-+------------------- Web service (one container, EU region) -------------------+
++---------------- Web service (one container, small EU server) ----------------+
 |  HTTP: /api/* JSON for the UI  |  React UI as static files  |  /u/:token page   |
 |  Job worker, same process: search, enrich, qualify, write, send, inbox, sweep  |
 +------+-------------+---------------+----------------+---------------+---------+
        |             |               |                |               |
   PostgreSQL    Google Places   Instagram Graph   Anthropic API   Company mailbox
-  (managed, EU)  API             API               (Claude)        (send + read)
+  (same server)  API             API               (Claude)        (send + read)
                                                                    + lead websites
                                                                      (public pages)
 ```
@@ -74,11 +75,11 @@ One module per capability, so a ticket stays inside one folder. Folder names are
 
 Names are a starting point; each row fixes its own.
 
-**UI pages** (signed in): `/review` (home, swipe review), `/leads` and `/leads/:id` (list with filters, detail and history, change type, language or time zone, record a reply or opt-out, erase, export), `/find` (Google Maps search, add from a link, past searches), `/to-do` (DMs due, leads to contact by hand), `/results`, `/templates`, `/settings` (company details, limits, markets, retention periods, pause).
+**UI pages** (signed in): `/review` (home, swipe review), `/leads` and `/leads/:id` (list with filters, detail and history, change type, language or time zone, record a reply or opt-out, erase, export), `/find` (Google Maps search, add from a link, past searches), `/to-do` (DMs due, leads to contact by hand), `/results`, `/templates`, `/settings` (company details, limits, send window and Saturday switch per client type, markets, retention periods, pause).
 
 **Public** (no sign-in): `GET /u/:token` shows the unsubscribe page with a confirm button (mail scanners open links, so a GET never opts out); `POST /u/:token` opts out, for the button and for one-click unsubscribe from mail apps (`List-Unsubscribe` and `List-Unsubscribe-Post` headers). `GET /health` for the host.
 
-**JSON API** (signed in): `POST|GET /api/searches`; `POST /api/leads` (from a link); `GET /api/leads` (filters); `GET|PATCH|DELETE /api/leads/:id`; `GET /api/leads/:id/export`; `GET /api/review/next`; `POST /api/leads/:id/decision`; `POST /api/leads/:id/events` (reply, opt-out or DM recorded by the owner); `GET /api/leads/:id/messages`; `GET /api/templates`, `PUT /api/templates/:type/:step/:language`; `GET /api/tasks`, `POST /api/tasks/:id/done`; `GET /api/results`; `GET|PUT /api/settings`; `POST /api/sending/pause|resume`; `POST /api/do-not-contact`.
+**JSON API** (signed in): `POST|GET /api/searches`; `POST /api/leads` (from a link); `GET /api/leads` (filters); `GET|PATCH|DELETE /api/leads/:id`; `GET /api/leads/:id/export`; `GET /api/review/next`; `POST /api/leads/:id/decision`; `POST /api/leads/:id/events` (reply, opt-out or DM recorded by the owner); `GET /api/leads/:id/messages`; `POST /api/messages/:id/send-now`; `GET /api/templates`, `PUT /api/templates/:type/:step/:language`; `GET /api/tasks`, `POST /api/tasks/:id/done`; `GET /api/results`; `GET|PUT /api/settings`; `POST /api/sending/pause|resume`; `POST /api/do-not-contact`.
 
 **Jobs** (PostgreSQL-backed queue): `search.run` (on demand), `lead.enrich` and `lead.qualify` (after a lead is created or refreshed), `email.write`, `send.tick` (every 5 minutes), `inbox.poll` (every 5 minutes and at the start of each `send.tick`), `retention.sweep` (daily).
 
@@ -86,15 +87,14 @@ Names are a starting point; each row fixes its own.
 
 | Service | Used for | Choice | Settled in |
 |---|---|---|---|
-| Cloud host and managed PostgreSQL | Running the service, storing data | EU region, always on, managed backups | D1, D3; provider in row 2 |
+| Small EU server (VPS) | Running the service and PostgreSQL, storing data | Always on, about €4 to 5 a month, daily backup kept off the server, a subdomain of the company domain | D1, D3; provider in row 2 |
 | Google Places API (recommended) | Search by text and place, place details, photos | Official API | D6; row 4 |
 | Instagram Graph API, business discovery (recommended) | Followers, bio, website, recent posts of business accounts, by handle | Official API, with a professional Instagram account linked to a Facebook Page and a Meta app | D6; row 7 |
-| Instagram data provider (optional) | Finding accounts by hashtag or place | Only if the client chooses it | row 26 |
 | Lead websites | Email, links, shop pages, language | Own polite reader | D6; row 6 |
-| Email lookup service (optional, for example Hunter) | More addresses and owner names, address check | Only if the budget allows | row 9 |
-| Anthropic API (Claude) | AI profile, client type, writing | Official TypeScript SDK | D7; model in row 8 |
+| Email lookup service (optional, for example Hunter) | More addresses and owner names, address check | Free tier only; dropped if it does not help | row 9 |
+| Anthropic API (Claude) | AI profile, client type, writing | Official TypeScript SDK, Haiku 5.5, Batch API, prompt caching, monthly spend cap | D7; confirmed in row 8 |
 | Company mailbox | Sending, sent copy, reading replies and bounces | SMTP and IMAP, Gmail API or Microsoft Graph | D5; row 16, after the external mailbox ticket |
-| Sign-in | Owner and developer access | Access gateway, Google sign-in, or email with passkey | row 3 |
+| Sign-in | The owner's access | A free method: Google sign-in or a passkey | row 3 |
 
 ### Data model
 
@@ -111,7 +111,7 @@ PostgreSQL; table and column names are fixed in rows 1 and 4.
 - `contact_task`: a DM due on day 3, or a lead to contact by hand, with its suggested text, due date and done date.
 - `do_not_contact`: a keyed hash of the normalised address, the reason and the date. Never deleted.
 - `seen_business`: keyed hashes of the match keys of deleted leads, with their last decision, so a deleted lead is not offered again.
-- `setting`: company name and postal address, sender name, limits, send window, active markets, retention periods, paused, dry-run.
+- `setting`: company name and postal address, sender name, limits, send window and Saturday switch per client type, active markets, retention periods, paused, dry-run.
 - `user`, `session`: shape set by row 3.
 - `audit_log`: who did what and when (decisions, sends, opt-outs, erasures, setting changes).
 
@@ -123,7 +123,7 @@ Google's terms let map place IDs be stored without limit but restrict how long o
 |---|---|
 | Local | The developer's machine: PostgreSQL in Docker Compose, a local mail catcher for sending and reading, sources, Instagram and AI replaced by recorded fixtures in tests; real APIs only with the developer's own keys |
 | CI | GitHub Actions: lint, type check, unit and integration tests against a PostgreSQL service container, next to the existing `dirox-checks` workflow |
-| Production | One always-on container and managed PostgreSQL in an EU region; secrets in the host's secret store; HTTPS on the host's domain or a subdomain of the company domain; daily backups; dry-run on (every email goes to an internal test address) until row 25 |
+| Production | One small always-on EU server running the container and PostgreSQL; secrets kept on the server outside the repo; HTTPS on a subdomain of the company domain (a free certificate); a daily backup kept off the server; dry-run on (every email goes to an internal test address) until row 25 |
 | Staging | None at first (one user, low cost); row 2 decides whether one is needed |
 
 ## Decisions
@@ -132,10 +132,10 @@ Google's terms let map place IDs be stored without limit but restrict how long o
 
 **Decision record needed.**
 
-One web service, hosted in the cloud in an EU region, serves the UI and runs all background work (searches, research, writing, sending, reading the inbox). The owner opens it in Safari or Chrome from a bookmark or a Dock icon (Safari's "Add to Dock", or Chrome's "Install app"). There is no page opened from a file and no terminal. Sending works while the Mac is off. The provider is chosen in row 2 (an always-on service with managed PostgreSQL in the EU, at a cost in the tens of US dollars a month).
+One web service, hosted in the cloud in an EU region, serves the UI and runs all background work (searches, research, writing, sending, reading the inbox). The owner opens it in Safari or Chrome from a bookmark or a Dock icon (Safari's "Add to Dock", or Chrome's "Install app"). There is no page opened from a file and no terminal. Sending works while the Mac is off. It runs on one small always-on server (a VPS of about €4 to 5 a month) with PostgreSQL on the same server (D3), and is reached at a subdomain of the company domain. The provider is chosen in row 2, within the budget in Goals.
 
 Sending must work while the Mac is off, for four reasons:
-- The send window is 9:00 to 10:00 in the lead's time zone. For Sydney or Melbourne that is about 5 to 6 am in Vietnam, and for New York about 8 to 9 pm.
+- Emails go out in each client type's morning window in the lead's time zone, Saturdays included for some types. For a café in Melbourne (8:00 to 9:00) that is about 4 to 5 am in Vietnam, and for New York about 7 to 8 pm.
 - Follow-ups fall on fixed days (6, 12 and 21), whatever the owner's schedule.
 - The stop-on-reply rule needs the inbox read right before each send.
 - The unsubscribe link must answer at any hour, and one-click unsubscribe needs a public address.
@@ -165,9 +165,10 @@ Alternatives considered:
 
 **Decision record needed.**
 
-Managed PostgreSQL in an EU region, with daily backups. Background jobs live in the same database (a PostgreSQL-backed queue, chosen in row 1), so a restart never loses a planned send. Planning, claiming and recording a send happen in database transactions (D4).
+PostgreSQL runs on the same server as the service, not as a managed database: the data is small (a few MB a month) and a managed database would take most of the budget. A daily backup is kept off the server, since the do-not-contact list must never be lost. Background jobs live in the same database (a PostgreSQL-backed queue, chosen in row 1), so a restart never loses a planned send. Planning, claiming and recording a send happen in database transactions (D4).
 
 Alternatives considered:
+- **Managed PostgreSQL.** Backups and patching handled by the provider, but it costs about as much as the whole budget allows.
 - **SQLite on a disk volume.** Free and simple, but backups have to be built by hand (and the do-not-contact list must never be lost), and only one writer is allowed. It would be the pick for the Mac option.
 - **A Redis-based queue.** One more service to host and back up.
 - **In-process timers.** Jobs are lost on restart, and two instances would send twice.
@@ -181,12 +182,14 @@ Emails are planned ahead as `outbound_message` rows, unique on (lead, step). The
 - the lead's approval still stands;
 - the address is not on the do-not-contact list;
 - no reply, bounce or opt-out is recorded;
-- it is between 9:00 and 10:00 in the lead's time zone;
+- it is inside the client type's send window, on one of its sending days, in the lead's time zone;
 - the daily limits are not reached;
 - the company's address is set and the footer is present;
 - the message passed the writing checks.
 
 Only then is the email handed to the mailbox, and its message ID and the "sent" status recorded. If the result is uncertain (a timeout after the mailbox accepted the email), the row is marked "unknown" and is never resent automatically. With dry-run on, the recipient is replaced by the internal test address. Sends are spaced a minute or more apart, at random, inside the window (row 18).
+
+Send now goes through the same gate: the owner's request claims the row in the same transaction as a `send.tick` would, so a row is sent once whichever comes first. It skips only the window, the sending days and the spacing; every other check, and the daily limits, still apply.
 
 Why: "no email to a lead the owner has not approved" and "stop on reply" must still hold when a decision or a reply arrives after the email was planned.
 
@@ -225,7 +228,7 @@ The tool never signs in to or automates the company's Instagram account: no DMs,
 
 Recommended sources, each settled in its own row:
 - **Google Maps: the Google Places API** (row 4). Text search, place details and photos. It stores place IDs and respects Google's storage limits for other content (see Data model).
-- **Instagram: the Graph API's business discovery** (row 7). It gives followers, bio, website and recent posts of business and creator accounts, by handle. It needs a professional Instagram account linked to a Facebook Page and a Meta app. It cannot search by hashtag or place, so Instagram leads come from handles found on websites, handles pasted by the owner, or a paid data provider (row 26, if chosen).
+- **Instagram: the Graph API's business discovery** (row 7). It gives followers, bio, website and recent posts of business and creator accounts, by handle. It needs a professional Instagram account linked to a Facebook Page and a Meta app. It cannot search by hashtag or place, so Instagram leads come from handles found on websites or pasted by the owner. A paid data provider to search by hashtag or place is out of scope for the budget.
 
 Alternatives considered:
 - **Own scraping of Google Maps or Instagram with a headless browser.** It breaks both sites' terms, is brittle and gets blocked. With the company's login it would also put the account at risk. Rejected.
@@ -247,10 +250,16 @@ Code checks every output:
 - no links except the allowed ones;
 - the products match the client type.
 
-Only business facts and the first name go to the AI; email addresses do not. The model is chosen in row 8 by measuring on sample leads: start on the current Opus model, and use a cheaper model for extraction if the quality holds. At the planned volume this costs roughly tens of US dollars a month on the top model, and a few dollars on the smallest. Row 8 also checks the provider's data terms (API data is not used for training by default) and its data processing agreement.
+Only business facts and the first name go to the AI; email addresses do not. Both steps use the smallest current model, Claude Haiku 5.5, kept cheap three ways:
+- the Batch API (half price), since research runs overnight and emails are written ahead of their send day;
+- prompt caching on the fixed parts of each request (instructions, templates, the client-type table);
+- a monthly spend cap on the AI account.
+
+At the planned volume (about 650 leads researched and 860 emails written a month) this is expected to cost a few euros a month at most. Row 8 confirms the quality on sample leads. If Haiku does not pass, row 8 compares a cheap OpenAI or Google Gemini model behind the same interface, and records the new processor for D8. Row 8 also checks the provider's data terms (API data is not used for training by default) and its data processing agreement.
 
 Alternatives considered:
-- **OpenAI or Google Gemini.** Comparable quality and price; no reason to prefer them, since Dirox already works with Claude.
+- **A larger Claude model (Sonnet or Opus) from the start.** Better writing, but several to tens of times the cost, which the budget does not allow for extraction and classification.
+- **OpenAI or Google Gemini.** Comparable quality and price; kept as the fallback if Haiku does not pass row 8, since Dirox already works with Claude.
 - **An EU-based provider** (for example Mistral). Data stays in the EU; a fallback if the legal review asks for EU-only processors.
 - **A local open model.** No API cost, but it needs strong hardware and more upkeep.
 - **Templates without AI.** They do not meet the brief.
@@ -259,7 +268,7 @@ Alternatives considered:
 
 **Decision record needed.**
 
-The tool processes business contact data on the basis of legitimate interest. Writing the legitimate-interest assessment is the client's task, not code. Hosting and the database are in the EU. The processors (host, Google, Meta, Anthropic, the mailbox provider, any lookup service or Instagram provider) are listed in `okf/`. The data kept:
+The tool processes business contact data on the basis of legitimate interest. Writing the legitimate-interest assessment is the client's task, not code. Hosting and the database are in the EU. The processors (host, Google, Meta, Anthropic, the mailbox provider, any lookup service) are listed in `okf/`. The data kept:
 - Only business facts and business contact data, each with its source. Personal social accounts are not collected.
 - The do-not-contact list keeps a keyed hash (HMAC with a server secret) of the normalised address, for good. The readable address goes when the lead is deleted.
 - A daily sweep deletes rejected leads and leads that finished without a reply after periods set in the settings (proposal, open question 11). Only hashed match keys are kept, so a deleted lead is not offered again.
@@ -278,14 +287,14 @@ These are not decisions of the kickoff. Each is settled and recorded by its tick
 
 | Decision | Decided in |
 |---|---|
-| Hosting provider, region, staging or not, backup retention | row 2 |
+| Hosting provider and region (within the budget), the subdomain's name, staging or not, backup retention | row 2 |
 | Package manager, ORM and migrations, job queue library, test runner, lint and format, folder layout, version pins | row 1 |
-| Sign-in method (access gateway, Google sign-in, email with passkey) and session length | row 3 |
+| Sign-in method (Google sign-in or a passkey, both free) and session length | row 3 |
 | Google Maps data source (Google Places API recommended) and what Places content is stored | row 4 |
 | Matching rules for duplicates (for example ignoring link-in-bio and social domains as website keys) | row 4 |
 | Instagram data source, and which Instagram account holds the API token | row 7 |
-| AI model, prompts and the measured cost | row 8 |
-| Email lookup service | row 9 |
+| Prompts, the measured cost, and whether Haiku 5.5 holds or a fallback model is needed | row 8 |
+| Email lookup service (free tier only) | row 9 |
 | How "a small online store" and "own merch" are judged | row 11 |
 | When messages are written (at approval or just before each step) | row 15 |
 | Mailbox protocol and credentials | row 16 |
@@ -298,7 +307,7 @@ These are not decisions of the kickoff. Each is settled and recorded by its tick
 ## Risks / Trade-offs
 
 - [Google's terms restrict storing Places content] → Store place IDs; refresh other content when shown or replace it with facts from the lead's website; row 4 checks the current terms.
-- [Meta refuses or narrows Instagram API access] → Instagram facts become optional; leads still come from Google Maps, pasted links and websites; a data provider (row 26) only if the client accepts it.
+- [Meta refuses or narrows Instagram API access] → Instagram facts become optional; leads still come from Google Maps, pasted links and websites.
 - [Poor delivery from a new domain] → Low limits, spaced sends, a warm-up (row 25), plain emails without tracking, a bounce stop, the pause switch; SPF, DKIM and DMARC belong to the mailbox ticket.
 - [The one-hour window caps how many emails go to one time zone] → About 30 to 60 emails per zone per day with spacing, above the planned volume; widening the window is a setting change if the client asks.
 - [The AI writes something untrue or odd] → Facts-only writer fed structured facts, output checks, owner-edited templates, and the owner can see emails before they go (open question 6).
@@ -309,8 +318,8 @@ These are not decisions of the kickoff. Each is settled and recorded by its tick
 - [The website reader is used to reach internal addresses] → Private and link-local addresses blocked, size and time limits, few redirects.
 - [Rules differ between markets] → Legal review (open question 9); the active markets setting can exclude countries.
 - [A single developer] → `okf/` concepts and runbooks, small modules, tests.
-- [Costs creep up] → Small volume, budget alerts on the host and the AI account, cost measured in row 8.
-- [The client picks the Mac option instead] → The service is one container with PostgreSQL and could run on a Mac, but the guarantees of D1 weaken; rows 2 and 3 would change (proposal, open question 1).
+- [Costs creep up past €10 a month] → Small volume, a spend cap on the AI account, budget alerts on the host, cost measured in row 8.
+- [A self-run server and database need upkeep] → Automatic security updates, a daily backup off the server, a restore runbook tested in row 2.
 
 ## Migration Plan
 
