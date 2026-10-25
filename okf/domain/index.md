@@ -1,1 +1,10 @@
 # Domain
+
+* [Base templates](base-templates.md) - The starting text for each client type, outreach step and language (English, French), kept and edited by the owner in the tool, from which the AI writes each message with one personal line drawn from the lead's recorded facts
+* [Client types](client-types.md) - The 13 kinds of business 1moqcustom targets (cafés and roasters to associations), plus "Other"; a lead's type decides the products proposed, its base templates, its hook, its send window and its Saturday switch
+* [Do-not-contact list](do-not-contact-list.md) - The email addresses that must never be emailed again, whatever happens to their lead; filled by unsubscribes, requests the owner records and erasures, kept for good as a keyed hash, never emptied
+* [Lead](lead.md) - A business that might order custom merch from 1moqcustom, never a person; one lead per business whichever source found it, matched by its map place, Instagram handle or website domain
+* [Lead status](lead-status.md) - The one current status of each lead in the outreach - found, waiting for review, approved, rejected, to contact by hand, emailed, replied, opted out, bounced, sequence finished - and what moves a lead from one to the next
+* [Markets](markets.md) - The countries 1moqcustom targets in three phases (EU, UK and Australia; then Singapore; then the United States), the active markets setting that flags leads elsewhere, and the language each lead is written to
+* [Outreach sequence](outreach-sequence.md) - The contacts an approved lead with an email gets - intro on day 1, an Instagram DM by hand on day 3, follow-ups on days 6 and 12, a last email on day 21 - counted from the intro actually sent, in its client type's morning window, within daily limits, until it replies, opts out or bounces
+* [Qualification rules and fit level](qualification-rules.md) - The client's five rules for a lead worth emailing (own merch, 2,000 to 50,000 Instagram followers, 1 to 10 locations or a small online store, posted in the last 30 days, a nameable owner) and the fit level they give - good, possible or poor
