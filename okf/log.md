@@ -1,6 +1,9 @@
 # Knowledge log
 
 ## 2026-10-25
+* **Added**: [Libraries and pinned versions for the scaffold](/decisions/MOQ-2-libraries-and-versions.md) - MOQ-2 decision D1.
+* **Added**: [One package, one folder per module under src](/decisions/MOQ-2-folder-layout.md) - MOQ-2 decision D2.
+* **Updated**: [Tech stack](/architecture/tech-stack.md) - MOQ-2 pinned the versions and libraries; now stable.
 * **Added**: [Architecture overview](/architecture/overview.md) - MOQ-1 kickoff foundation: modules, data flow, external services, deployment.
 * **Added**: [Tech stack](/architecture/tech-stack.md) - MOQ-1 kickoff: TypeScript, Fastify, React, PostgreSQL; pins left to row 1.
 * **Added**: [The page is served by an always-on web service in the cloud](/decisions/MOQ-1-cloud-web-service.md) - MOQ-1 kickoff decision D1.

@@ -86,33 +86,33 @@ Every row is new (the epic has no child tickets yet). `#` is the row number used
 
 | # | Jira | Title | Size | Depends on | Capability |
 |---|---|---|---|---|---|
-| 1 | new | Project scaffold: web service, UI shell, database, job queue, tests and CI | normal | - | tooling |
-| 2 | new | Cloud deployment: small EU server with PostgreSQL (within €10 a month), subdomain and HTTPS, secrets, off-server backups, dry-run mode | big | 1 | tooling |
-| 3 | new | Owner sign-in (free method), and opening the tool from the Mac's Dock | big | 2 | user-access |
-| 4 | new | Find leads on Google Maps by type of business and city (lead record, duplicates) | big | 1 | lead-sourcing |
-| 5 | new | Add a lead by hand from an Instagram profile or a website link | normal | 4 | lead-sourcing |
-| 6 | new | Read each lead's website: contact email, Instagram link, shop pages, language, time zone | big | 4 | lead-enrichment |
-| 7 | new | Instagram profile facts: followers, last post, recent posts | big | 6 | lead-enrichment |
-| 8 | new | AI profile of each lead: what it does, owner name, own-merch evidence (first AI use) | big | 7 | lead-enrichment |
-| 9 | new | Email lookup fallback and address check through a lookup service's free tier (dropped if it does not help) | big | 6 | lead-enrichment |
-| 10 | new | Client type for each lead, with its reason and the owner's correction | normal | 8 | lead-qualification |
-| 11 | new | Fit level from the five qualification rules, and the active markets | normal | 10 | lead-qualification |
-| 12 | new | Swipe review: one lead per screen, approve or reject, best fit first | normal | 11 | lead-review |
-| 13 | new | Pictures of the business on the review card | normal | 12 | lead-review |
-| 14 | new | Base templates per client type, step and language (English, French), editable by the owner | normal | 10 | email-writing |
-| 15 | new | AI-written emails from the template and the lead's facts, with output checks | normal | 14 | email-writing |
-| 16 | new | Connect the company mailbox: send, save to sent mail, read the inbox | big | 1, External (a test mailbox until then) | outreach-sending |
-| 17 | new | Legal footer, one-step unsubscribe and the do-not-contact list | big | 2 | outreach-compliance |
-| 18 | new | Send the intro email to approved leads in their client type's window and sending days, within the daily limit, with Send now and a pause switch | big | 12, 15, 16, 17 | outreach-sending |
-| 19 | new | Stop the sequence on reply, bounce or opt-out, read from the mailbox or recorded by the owner | big | 18 | outreach-sending |
-| 20 | new | Follow-ups on days 6, 12 and 21 | normal | 19 | outreach-sending |
-| 21 | new | Day-3 Instagram DM reminder and the list of leads to contact by hand | normal | 20 | outreach-sending |
-| 22 | new | Lead list, status and history | normal | 12 | outreach-tracking |
-| 23 | new | Results for a period, by client type and market | normal | 22, 19 | outreach-tracking |
-| 24 | new | Personal data: retention periods, erasure and export on request | normal | 17 | outreach-compliance |
-| 25 | new | Go live: launch runbook, warm-up limits, test sends, dry-run off | trivial | 3, 19, External | tooling |
-| 27 | new | (If chosen) Read and edit the intro email on the review card before approving | normal | 13, 15 | lead-review |
-| 28 | new | (If chosen) Mark a replied lead's outcome (mockup, sample, order) and count it in the results | normal | 23 | outreach-tracking |
+| 1 | MOQ-2 | Project scaffold: web service, UI shell, database, job queue, tests and CI | normal | - | tooling |
+| 2 | MOQ-3 | Cloud deployment: small EU server with PostgreSQL (within €10 a month), subdomain and HTTPS, secrets, off-server backups, dry-run mode | big | MOQ-2 | tooling |
+| 3 | MOQ-4 | Owner sign-in (free method), and opening the tool from the Mac's Dock | big | MOQ-3 | user-access |
+| 4 | MOQ-5 | Find leads on Google Maps by type of business and city (lead record, duplicates) | big | MOQ-2 | lead-sourcing |
+| 5 | MOQ-6 | Add a lead by hand from an Instagram profile or a website link | normal | MOQ-5 | lead-sourcing |
+| 6 | MOQ-7 | Read each lead's website: contact email, Instagram link, shop pages, language, time zone | big | MOQ-5 | lead-enrichment |
+| 7 | MOQ-8 | Instagram profile facts: followers, last post, recent posts | big | MOQ-7 | lead-enrichment |
+| 8 | MOQ-9 | AI profile of each lead: what it does, owner name, own-merch evidence (first AI use) | big | MOQ-8 | lead-enrichment |
+| 9 | MOQ-10 | Email lookup fallback and address check through a lookup service's free tier (dropped if it does not help) | big | MOQ-7 | lead-enrichment |
+| 10 | MOQ-11 | Client type for each lead, with its reason and the owner's correction | normal | MOQ-9 | lead-qualification |
+| 11 | MOQ-12 | Fit level from the five qualification rules, and the active markets | normal | MOQ-11 | lead-qualification |
+| 12 | MOQ-13 | Swipe review: one lead per screen, approve or reject, best fit first | normal | MOQ-12 | lead-review |
+| 13 | MOQ-14 | Pictures of the business on the review card | normal | MOQ-13 | lead-review |
+| 14 | MOQ-15 | Base templates per client type, step and language (English, French), editable by the owner | normal | MOQ-11 | email-writing |
+| 15 | MOQ-16 | AI-written emails from the template and the lead's facts, with output checks | normal | MOQ-15 | email-writing |
+| 16 | MOQ-17 | Connect the company mailbox: send, save to sent mail, read the inbox | big | MOQ-2, External (a test mailbox until then) | outreach-sending |
+| 17 | MOQ-18 | Legal footer, one-step unsubscribe and the do-not-contact list | big | MOQ-3 | outreach-compliance |
+| 18 | MOQ-19 | Send the intro email to approved leads in their client type's window and sending days, within the daily limit, with Send now and a pause switch | big | MOQ-13, MOQ-16, MOQ-17, MOQ-18 | outreach-sending |
+| 19 | MOQ-20 | Stop the sequence on reply, bounce or opt-out, read from the mailbox or recorded by the owner | big | MOQ-19 | outreach-sending |
+| 20 | MOQ-21 | Follow-ups on days 6, 12 and 21 | normal | MOQ-20 | outreach-sending |
+| 21 | MOQ-22 | Day-3 Instagram DM reminder and the list of leads to contact by hand | normal | MOQ-21 | outreach-sending |
+| 22 | MOQ-23 | Lead list, status and history | normal | MOQ-13 | outreach-tracking |
+| 23 | MOQ-24 | Results for a period, by client type and market | normal | MOQ-23, MOQ-20 | outreach-tracking |
+| 24 | MOQ-25 | Personal data: retention periods, erasure and export on request | normal | MOQ-18 | outreach-compliance |
+| 25 | MOQ-26 | Go live: launch runbook, warm-up limits, test sends, dry-run off | trivial | MOQ-4, MOQ-20, External | tooling |
+| 27 | MOQ-27 | (If chosen) Read and edit the intro email on the review card before approving | normal | MOQ-14, MOQ-16 | lead-review |
+| 28 | MOQ-28 | (If chosen) Mark a replied lead's outcome (mockup, sample, order) and count it in the results | normal | MOQ-24 | outreach-tracking |
 
 Notes on the backlog:
 - **Split rows.** No existing ticket was split (there were none). The feature areas were cut so each row fits one PR: enrichment is four rows (website, Instagram, AI profile, lookup service) and sending is five (mailbox, intro, stop rules, follow-ups, DM reminder).

@@ -1,36 +1,43 @@
 ---
 type: Architecture
 title: Tech stack
-description: TypeScript on Node.js LTS, Fastify API and a React UI built with Vite in one container, PostgreSQL as the only store and job queue; exact versions and libraries are pinned by backlog row 1
+description: TypeScript on Node.js 24 LTS, Fastify API and a React UI built with Vite in one container, PostgreSQL as the only store and job queue, with the libraries and exact versions pinned by the project scaffold
 owner: ledvincent
-status: draft
-tags: [architecture, stack, kickoff]
+status: stable
+tags: [architecture, stack]
 ---
 # Tech stack
 
-Chosen in [TypeScript on Node.js with Fastify and React](/decisions/MOQ-1-typescript-stack.md) and [PostgreSQL as the only store and queue](/decisions/MOQ-1-postgresql-store-and-queue.md). Stays `draft` until row 1 (project scaffold) pins the versions and picks the libraries. Changing a line here is a decision: it needs a file in `/decisions/`.
-
-Open question 14 (does the developer who will maintain the tool confirm TypeScript?) has no answer yet. If another stack is named, a new decision supersedes the TypeScript one and this page changes with it.
+Chosen in [TypeScript on Node.js with Fastify and React](/decisions/MOQ-1-typescript-stack.md) and [PostgreSQL as the only store and queue](/decisions/MOQ-1-postgresql-store-and-queue.md); libraries and versions pinned in [Libraries and pinned versions](/decisions/MOQ-2-libraries-and-versions.md) (MOQ-2). The maintainer confirmed TypeScript. Changing a line here is a decision: it needs a file in `/decisions/`.
 
 ## Frameworks and versions
 
+Exact pins as in `package.json`.
+
 | Layer | Choice | Version |
 |---|---|---|
-| Language | TypeScript, everywhere (UI, API, jobs) | TODO: row 1 |
-| Runtime | Node.js, current LTS | TODO: row 1 |
-| API and static files | Fastify, serving the JSON API and the built UI | TODO: row 1 |
-| UI | React single-page app, built with Vite | TODO: row 1 |
-| Database | PostgreSQL, on the same server as the service (not managed) | TODO: row 1 or 2 |
-| Job queue | A PostgreSQL-backed queue library | TODO: library and version in row 1 |
-| AI | Anthropic's official TypeScript SDK; model Claude Haiku 5.5 (`claude-haiku-5-5`) | SDK version in row 1 or 8; model confirmed in row 8 |
-| Packaging | One container image running the web server and the job worker in one process (can be split into two processes later without code changes) | - |
-| Local | PostgreSQL in Docker Compose, a local mail catcher | TODO: row 1 |
-| CI | GitHub Actions: lint, type check, unit and integration tests against a PostgreSQL service container | TODO: row 1 |
+| Language | TypeScript, everywhere (UI, API, jobs); type check only, Node runs the files | 6.0.3 (7 waits for typescript-eslint support) |
+| Runtime | Node.js 24 LTS, running `.ts` by type stripping | 24.x (`engines` `>=24.11`) |
+| Package manager | pnpm | 12.15.0 |
+| API and static files | Fastify, with `@fastify/static` serving the built UI | 5.12.7, 10.1.7 |
+| UI | React, React DOM, built with Vite and `@vitejs/plugin-react` | 19.3.1, Vite 8.3.5, 6.1.2 |
+| Database | PostgreSQL, on the same server as the service (not managed) | 18 (`postgres:18` locally and in CI; production confirmed by MOQ-3) |
+| ORM and migrations | Drizzle ORM, drizzle-kit, `pg` driver; SQL migrations in `drizzle/`, applied at start | 0.45.4, 0.31.11, 8.23.1 |
+| Job queue | pg-boss, on the same PostgreSQL | 12.38.0 |
+| Tests | Vitest, unit and integration projects (integration needs `TEST_DATABASE_URL`) | 5.0.5 |
+| Lint and format | ESLint, typescript-eslint, `@eslint/js`, `eslint-plugin-react-hooks`, `eslint-config-prettier`; Prettier | 10.13.0, 8.72.0, 10.0.1, 7.1.1, 10.1.8; 3.9.10 |
+| IANA time zones | Luxon, `@types/luxon` | 3.7.2, 3.7.6 |
+| Types | `@types/node` (matches Node 24), `@types/react`, `@types/react-dom`, `@types/pg` | 24.19.2, 19.3.0, 19.3.0, 8.23.1 |
+| AI | Anthropic's official TypeScript SDK; model Claude Haiku 5.5 (`claude-haiku-5-5`) | SDK version in row 8 |
+| Packaging | One container image running the web server and the job worker in one process (can be split into two processes later without code changes) | image: MOQ-3 |
+| Local | PostgreSQL and Mailpit (`axllent/mailpit`) in Docker Compose | `postgres:18`, `v1.32.0` |
+| CI | GitHub Actions `ci.yml` next to `dirox-checks`: lint, type check, unit and integration tests against a `postgres:18` service container | actions at `v4` |
 
-Left to row 1: package manager, ORM and migrations, job queue library, test runner, lint and format tools, folder layout, version pins, and the library that converts IANA time zones.
+Folder layout: [One package, one folder per module under src](/decisions/MOQ-2-folder-layout.md). Commands are in `.claude/CLAUDE.md`.
 
 ## Allowed libraries
 
+- Everything in the table above.
 - Anthropic official TypeScript SDK: every AI call, behind the internal AI interface (profile, classify, write). See [Anthropic Claude](/integrations/anthropic-claude.md).
 - Others: added by the ticket that needs them, and listed here by that ticket.
 
@@ -38,5 +45,5 @@ Left to row 1: package manager, ORM and migrations, job queue library, test runn
 
 - Headless browsers or scrapers aimed at Google Maps or Instagram pages, and unofficial Instagram API clients: [source policy](/decisions/MOQ-1-lead-source-policy.md). Use the official APIs.
 - Anything that signs in to or automates the company's Instagram account: same decision.
-- A second data store or a Redis-based queue: [PostgreSQL only](/decisions/MOQ-1-postgresql-store-and-queue.md). Use the PostgreSQL-backed queue.
+- A second data store or a Redis-based queue: [PostgreSQL only](/decisions/MOQ-1-postgresql-store-and-queue.md). Use pg-boss.
 - Transactional or newsletter email services for outreach, and open or click tracking: [company mailbox](/decisions/MOQ-1-company-mailbox-sending.md). Send through the company mailbox.

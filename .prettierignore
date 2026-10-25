@@ -1,0 +1,13 @@
+node_modules/
+dist/
+drizzle/
+pnpm-lock.yaml
+tests/fixtures/
+# Specs, knowledge, kit files and Claude settings keep their own formatting
+openspec/
+okf/
+test-cases/
+.claude/
+.github/scripts/
+*.md
+.github/workflows/dirox-checks.yml

@@ -8,7 +8,7 @@ okf_version: "0.2"
 # Architecture
 
 * [Architecture overview](architecture/overview.md) - One always-on TypeScript web service on a small EU server serves the owner's UI and runs every background job (search, research, qualification, writing, sending, inbox), with PostgreSQL on the same server as its only store and job queue
-* [Tech stack](architecture/tech-stack.md) - TypeScript on Node.js LTS, Fastify API and a React UI built with Vite in one container, PostgreSQL as the only store and job queue; exact versions and libraries are pinned by backlog row 1
+* [Tech stack](architecture/tech-stack.md) - TypeScript on Node.js 24 LTS, Fastify API and a React UI built with Vite in one container, PostgreSQL as the only store and job queue, with the libraries and exact versions pinned by the project scaffold
 
 # Domain
 
@@ -26,6 +26,8 @@ okf_version: "0.2"
 * [Claude through the Anthropic API profiles, classifies and writes](decisions/MOQ-1-claude-for-ai.md) - One AI provider, Claude Haiku 5.5 through the Anthropic API (Batch API, prompt caching, monthly spend cap), with extraction of facts from untrusted page text kept apart from writing, and every output checked by code
 * [Every email is checked by the send gate at the moment it is sent](decisions/MOQ-1-send-gate.md) - Emails are planned ahead as one row per lead and step, and each is claimed and checked in one transaction right before it goes to the mailbox (approval, opt-out, reply, window, limits, footer), so a late reply or withdrawal is never missed and nothing is sent twice
 * [Lead sources only through official or provider APIs, never the company's Instagram account](decisions/MOQ-1-lead-source-policy.md) - Google Maps and Instagram data come only through official APIs (or a provider's API if the client chooses), the tool never signs in to or automates the company's Instagram account, and lead websites are read politely
+* [Libraries and pinned versions for the scaffold](decisions/MOQ-2-libraries-and-versions.md) - pnpm, Drizzle, pg-boss, Vitest, ESLint, Prettier and Luxon on Node 24 with exact version pins, TypeScript held at 6.0.3 until typescript-eslint supports 7; versions change only through a ticket
+* [One package, one folder per module under src](decisions/MOQ-2-folder-layout.md) - One package (no monorepo) with the server in src/<module>/, the UI in web/, tests next to the code and shared platform code in src/platform; a module's folder is created by the first ticket that needs it
 * [Personal data: EU hosting, minimal data, hashed do-not-contact list, retention](decisions/MOQ-1-personal-data-handling.md) - Leads' data is processed on legitimate interest, hosted in the EU, limited to business facts and contacts with their sources, deleted after retention periods, while opt-outs are kept for good as a keyed hash of the address
 * [PostgreSQL is the only data store and holds the job queue](decisions/MOQ-1-postgresql-store-and-queue.md) - PostgreSQL on the same server as the service holds all data and the background job queue, with a daily backup kept off the server, so a restart never loses a planned send and the do-not-contact list is never lost
 * [Send and read through the company mailbox, plain personal emails, no tracking](decisions/MOQ-1-company-mailbox-sending.md) - Outreach emails go out from the company mailbox and replies and bounces are read from it, as plain personal emails with no open or click tracking, so replies land where the owner reads them and delivery is not hurt
