@@ -10,10 +10,11 @@
 - Jira project key: MOQ (kickoff epic MOQ-1)
 
 ## Commands
-- Install: TODO (row 1, the project scaffold)
-- Run locally: TODO (row 1; PostgreSQL in Docker Compose and a local mail catcher)
-- Test: TODO (row 1)
-- Lint / format: TODO (row 1)
+- Install: `pnpm install` (Node 24, pnpm through Corepack)
+- Run locally: `pnpm db:up` (PostgreSQL and Mailpit in Docker Compose), copy `.env.example` to `.env`, then `pnpm dev` (builds the UI, serves it and the API on http://localhost:3000); `pnpm dev:web` for UI hot reload on 5173
+- Test: `pnpm test` (unit and integration; integration needs `TEST_DATABASE_URL` and a running PostgreSQL), `pnpm test:unit` (unit only)
+- Lint / format: `pnpm lint` (ESLint and Prettier check), `pnpm typecheck`, `pnpm format`
+- New migration: change `src/platform/db/schema.ts`, then `pnpm db:generate`
 - Check the knowledge: `node .github/scripts/okf-validate.mjs okf`
 - Check the specs: `openspec validate --all --strict --no-interactive`
 

@@ -1,0 +1,26 @@
+# Local services only: PostgreSQL (store and job queue) and Mailpit (catches SMTP).
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: moq
+      POSTGRES_PASSWORD: moq
+      POSTGRES_DB: moq
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U moq -d moq']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+
+volumes:
+  postgres-data:
