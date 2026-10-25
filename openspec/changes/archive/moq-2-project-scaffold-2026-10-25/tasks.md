@@ -41,5 +41,5 @@
 - [x] 5.8 Test `Missing required setting` in `src/platform/config.test.ts` (and the process exits with code 1 naming `DATABASE_URL` in `src/main.int.test.ts`)
 - [x] 5.9 Test `Check commands fail on a problem` in `tests/check-commands.int.test.ts` (runs lint, type check and Vitest on fixtures with a known problem; expects a non-zero exit and the fixture's path in the output)
 - [x] 5.10 Test `Integration tests use a real PostgreSQL` in `tests/check-commands.int.test.ts` (the integration project's database answers `select version()` as PostgreSQL)
-- [ ] 5.11 Test `CI runs the checks on a pull request` in `tests/ci-workflow.test.ts` (reads `.github/workflows/ci.yml`: `pull_request` trigger, PostgreSQL service, lint, typecheck and test steps), plus the PR's own CI run
+- [x] 5.11 Test `CI runs the checks on a pull request` in `tests/ci-workflow.test.ts` (reads `.github/workflows/ci.yml`: `pull_request` trigger, PostgreSQL service, lint, typecheck and test steps), plus the PR's own CI run
 - [x] 5.12 Test `CI fails when a check fails` in `tests/ci-workflow.test.ts` (no `continue-on-error` in the workflow)

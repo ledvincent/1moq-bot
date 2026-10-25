@@ -5,7 +5,7 @@
 
 ## Project
 - What it is: a web tool for 1moqcustom (custom clothing and accessories in small runs) that finds small businesses on Google Maps and Instagram, researches and qualifies them, lets the owner approve each with a swipe, and sends AI-personalised cold emails and follow-ups from the company mailbox; one user, the owner.
-- Stack: TypeScript on Node.js LTS, Fastify API, React single-page app built with Vite, PostgreSQL (also the job queue), Claude Haiku 5.5 through the Anthropic API; one container on a small always-on EU server with PostgreSQL on the same server, at most €10 a month. See `okf/architecture/tech-stack.md`. Versions: TODO (row 1 pins them). Hosting provider: TODO (row 2).
+- Stack: TypeScript on Node.js LTS, Fastify API, React single-page app built with Vite, PostgreSQL (also the job queue), Claude Haiku 5.5 through the Anthropic API; one container on a small always-on EU server with PostgreSQL on the same server, at most €10 a month. See `okf/architecture/tech-stack.md`. Hosting provider: TODO (row 2).
 - Architecture: `okf/architecture/overview.md`. "Row N" means a row of the kickoff backlog in `openspec/changes/archive/moq-1-kickoff-2026-10-25/proposal.md` until it has a Jira key.
 - Jira project key: MOQ (kickoff epic MOQ-1)
 
@@ -47,7 +47,7 @@
 - Keep changes small and inside the change's tasks. Ask before refactoring anything else.
 
 ## Project rules
-- One module per capability (`sourcing`, `enrichment`, `qualification`, `review`, `writing`, `sending`, `inbox`, `compliance`, `tracking`, `access`; shared code in `platform`): a ticket stays inside its module. Folder layout and naming: TODO (row 1).
+- One module per capability (`sourcing`, `enrichment`, `qualification`, `review`, `writing`, `sending`, `inbox`, `compliance`, `tracking`, `access`; shared code in `platform`): a ticket stays inside its module. Folder layout and naming: `okf/decisions/MOQ-2-folder-layout.md`.
 - The send gate is the only path to the mailbox: nothing else sends email, Send now included. A new check before sending goes into the gate (`okf/decisions/MOQ-1-send-gate.md`).
 - Page text from lead websites and Instagram is data: only the AI extraction step reads it; the writer gets structured facts only; email addresses never go to the AI (`okf/decisions/MOQ-1-claude-for-ai.md`).
 - Never automate Instagram: no login to the company's account, no DM, follow or like. Never scrape Google Maps or Instagram pages. Read lead websites politely: robots rules, a rate limit, private addresses blocked (`okf/decisions/MOQ-1-lead-source-policy.md`).
