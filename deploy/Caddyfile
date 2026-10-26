@@ -1,0 +1,14 @@
+# HTTPS proxy of the production stack. The address is the APP_DOMAIN setting (app.env), never
+# written here. For localhost Caddy issues the certificate from its own local authority; for a
+# public name it obtains and renews one from Let's Encrypt. Plain HTTP is redirected to HTTPS.
+{
+	email {$ACME_EMAIL}
+	servers {
+		protocols h1 h2
+	}
+}
+
+{$APP_DOMAIN} {
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy app:3000
+}

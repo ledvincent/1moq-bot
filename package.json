@@ -17,8 +17,9 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p web/tsconfig.json",
-    "test": "vitest run",
-    "test:unit": "vitest run --project unit"
+    "test": "vitest run --project unit --project integration",
+    "test:unit": "vitest run --project unit",
+    "test:container": "vitest run --project container"
   },
   "dependencies": {
     "@fastify/static": "10.1.7",

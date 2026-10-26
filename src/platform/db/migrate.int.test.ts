@@ -27,7 +27,13 @@ describe('migrations at start', () => {
 
   async function startAndStop(): Promise<void> {
     const service = await start(
-      { databaseUrl: testDb.url, port: 0, host: '127.0.0.1', webDir: inject('webDir') },
+      {
+        databaseUrl: testDb.url,
+        port: 0,
+        host: '127.0.0.1',
+        webDir: inject('webDir'),
+        dryRun: true,
+      },
       { logger: false },
     );
     await service.stop();
