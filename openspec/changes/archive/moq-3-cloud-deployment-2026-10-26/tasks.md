@@ -12,7 +12,7 @@ Big change: start only after the proposal PR is merged. Everything here runs on 
 - [x] 2.1 `deploy/Dockerfile` (multi-stage, non-root, non-secret defaults only, design D2) and a root `.dockerignore`. Done when `docker build -f deploy/Dockerfile .` succeeds and `docker run` with a development `DATABASE_URL` serves `/health`
 - [x] 2.2 `vitest.config.ts`: a `container` project for `tests/**/*.container.test.ts`, excluded from `unit` and `integration`, one file at a time; `package.json` script `test:container`. Done when `pnpm test` does not pick up container tests, and `pnpm test:container` without `IMAGE` fails with a clear message
 - [x] 2.3 `tests/container/image.container.test.ts` as in design D10. Done when `pnpm test:container` passes locally against the built image
-- [ ] 2.4 `.github/workflows/image.yml` (design D9): on every PR and on `main`, build the image, install `age`, run `pnpm test:container`; no publishing and no `packages: write`. Done when the PR's own run is green, `ci.yml` is unchanged and `tests/ci-workflow.test.ts` still passes
+- [x] 2.4 `.github/workflows/image.yml` (design D9): on every PR and on `main`, build the image, install `age`, run `pnpm test:container`; no publishing and no `packages: write`. Done when the PR's own run is green, `ci.yml` is unchanged and `tests/ci-workflow.test.ts` still passes
 
 ## 3. Production stack
 
@@ -33,7 +33,7 @@ Big change: start only after the proposal PR is merged. Everything here runs on 
 
 ## 6. Runbooks, docs and checks
 
-- [ ] 6.1 Draft the runbooks in this change folder. Done when each step names its command and the developer has followed `local-production-stack.md` once by hand on their machine:
+- [x] 6.1 Draft the runbooks in this change folder. Done when each step names its command and the developer has followed `local-production-stack.md` once by hand on their machine:
   - `runbooks/local-production-stack.md`: install Docker, Git Bash and `age`; create `.deploy-local/` from the templates; build and tag the image; start and stop the stack; open `https://localhost`.
   - `runbooks/backup-and-restore.md`: run a backup; keep the private key outside the repository and the backup folder; restore into an empty stack; compare the table counts.
   - `runbooks/deploy-and-rollback.md`: deploy a tag, roll back, the migration rule.

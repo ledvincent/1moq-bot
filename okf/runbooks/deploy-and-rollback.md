@@ -3,14 +3,14 @@ type: Runbook
 title: Deploy a release and roll it back
 description: Build and tag an image, deploy the tag with deploy/deploy.sh (backup first, health check, releases log), roll back with --previous, and the rule that keeps migrations compatible with the previous release
 owner: ledvincent
-status: draft
+status: stable
 tags: [deployment, release]
 ---
 # Deploy a release and roll it back
 
-Jira: MOQ-3 · Change: `openspec/changes/moq-3-cloud-deployment/`
+Jira: MOQ-3 · Change: `openspec/changes/archive/moq-3-cloud-deployment-2026-10-26/`
 
-A release is a container image identified by its tag. Locally, first follow `local-production-stack.md` steps 1 to 5 (the stack is running, the variables are set). On the server the image comes from a registry: MOQ-29 adds the publishing and sets `APP_IMAGE`.
+A release is a container image identified by its tag. Locally, first follow [Run the production stack locally](/runbooks/local-production-stack.md) steps 1 to 5 (the stack is running, the variables are set). On the server the image comes from a registry: MOQ-29 adds the publishing and sets `APP_IMAGE`.
 
 ## Deploy a tag
 
@@ -36,8 +36,10 @@ bash deploy/deploy.sh --previous
 
 It deploys the last tag recorded `ok` before the current one, the same way (backup first), and keeps the data. To go to a specific older tag, run `bash deploy/deploy.sh <tag>`.
 
+Running `--previous` a second time does not go one release further back: it picks the last `ok` tag that is not the current one, so it switches back to the release you just left. To go further back, name the tag.
+
 ## Migrations and rollback
 
 - Migrations are forward-only and run at the app's start.
 - A migration must keep working with the previous release's code: add first, remove in a later release. A rollback then runs the old code on the newer schema, and the migrator finds nothing newer to apply.
-- A migration that cannot stay compatible says so in its PR. Its rollback is a restore of the dump taken just before the deploy (`backup-and-restore.md`, step 3).
+- A migration that cannot stay compatible says so in its PR. Its rollback is a restore of the dump taken just before the deploy ([Back up and restore](/runbooks/backup-and-restore.md), step 3).

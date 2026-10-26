@@ -3,14 +3,14 @@ type: Runbook
 title: Back up and restore the production database
 description: Create the age key pair and keep the private key apart, run the encrypted backup, restore a dump into an empty stack and compare the row counts of every table
 owner: ledvincent
-status: draft
+status: stable
 tags: [deployment, backup]
 ---
 # Back up and restore the production database
 
-Jira: MOQ-3 · Change: `openspec/changes/moq-3-cloud-deployment/`
+Jira: MOQ-3 · Change: `openspec/changes/archive/moq-3-cloud-deployment-2026-10-26/`
 
-Dumps are encrypted with `age`: the stack holds only the public key, so nobody who gets the stack, its settings or its backup folder can read a dump. Locally, first follow `local-production-stack.md` steps 1 to 3 (the variables and `source deploy/lib.sh`). On the server, the defaults (`/etc/1moq`, `/var/backups/1moq`, `/var/lib/1moq`) apply; MOQ-29 adds the daily timer and the alerting.
+Dumps are encrypted with `age`: the stack holds only the public key, so nobody who gets the stack, its settings or its backup folder can read a dump. Locally, first follow [Run the production stack locally](/runbooks/local-production-stack.md) steps 1 to 3 (the variables and `source deploy/lib.sh`). On the server, the defaults (`/etc/1moq`, `/var/backups/1moq`, `/var/lib/1moq`) apply; MOQ-29 adds the daily timer and the alerting.
 
 ## 1. Create the key pair (once)
 
