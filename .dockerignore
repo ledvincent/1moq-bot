@@ -1,0 +1,18 @@
+# Build context of deploy/Dockerfile: no settings file, no secret, nothing the image does not need.
+.env
+.env.*
+**/.env
+**/.env.*
+**/*.env
+!**/*.env.example
+.deploy-local
+.git
+node_modules
+**/node_modules
+dist
+.claude
+okf
+openspec
+tests
+test-cases
+src/**/*.test.ts

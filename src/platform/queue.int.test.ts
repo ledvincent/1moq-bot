@@ -29,7 +29,13 @@ describe('job queue', () => {
 
   function startService(registerJobs: (service: Service['queue']) => Promise<void>) {
     return start(
-      { databaseUrl: testDb.url, port: 0, host: '127.0.0.1', webDir: inject('webDir') },
+      {
+        databaseUrl: testDb.url,
+        port: 0,
+        host: '127.0.0.1',
+        webDir: inject('webDir'),
+        dryRun: true,
+      },
       { logger: false, queue: { pollingIntervalSeconds: 0.5 }, registerJobs },
     );
   }

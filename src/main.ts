@@ -61,6 +61,11 @@ async function main(): Promise<void> {
     }
     throw error;
   }
+  console.log(
+    config.dryRun
+      ? 'Dry-run is on: every email goes to the internal test address'
+      : 'Dry-run is off: emails go to their recipients',
+  );
 
   const service = await start(config);
   let stopping = false;

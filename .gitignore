@@ -5,3 +5,7 @@ node_modules/
 dist/
 .env.*
 !.env.example
+# Production stack settings: the local folder, and settings files copied next to the templates
+.deploy-local/
+deploy/*.env
+!deploy/*.env.example

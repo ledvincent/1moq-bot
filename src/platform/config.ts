@@ -6,6 +6,8 @@ export interface Config {
   port: number;
   host: string;
   webDir: string;
+  // On unless DRY_RUN is exactly `false`: the send gate then sends to the internal test address.
+  dryRun: boolean;
 }
 
 export class SettingError extends Error {
@@ -48,11 +50,20 @@ function port(env: Env, name: string, fallback: number): number {
   return value;
 }
 
+// Fails closed: unset or blank is on, only exactly `true` or `false` is accepted.
+function dryRun(env: Env, name: string): boolean {
+  const raw = env[name]?.trim();
+  if (!raw || raw === 'true') return true;
+  if (raw === 'false') return false;
+  throw new SettingError(name, `Invalid setting: ${name} must be true or false`);
+}
+
 export function loadConfig(env: Env = process.env): Config {
   return {
     databaseUrl: required(env, 'DATABASE_URL'),
     port: port(env, 'PORT', 3000),
     host: optional(env, 'HOST', '127.0.0.1'),
     webDir: optional(env, 'WEB_DIR', 'dist/web'),
+    dryRun: dryRun(env, 'DRY_RUN'),
   };
 }
