@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Qualification rules and fit level
 description: The client's five rules for a lead worth emailing (own merch, 2,000 to 50,000 Instagram followers, 1 to 10 locations or a small online store, posted in the last 30 days, a nameable owner) and the fit level they give - good, possible or poor
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [qualification, kickoff]
 ---

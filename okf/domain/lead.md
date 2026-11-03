@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Lead
 description: A business that might order custom merch from 1moqcustom, never a person; one lead per business whichever source found it, matched by its map place, Instagram handle or website domain
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [sourcing, kickoff]
 ---

@@ -2,7 +2,7 @@
 type: Decision
 title: Libraries and pinned versions for the scaffold
 description: pnpm, Drizzle, pg-boss, Vitest, ESLint, Prettier and Luxon on Node 24 with exact version pins, TypeScript held at 6.0.3 until typescript-eslint supports 7; versions change only through a ticket
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [architecture, stack, libraries]
 ---

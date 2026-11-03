@@ -1,5 +1,10 @@
 # Knowledge log
 
+## 2026-11-03
+* **Added**: [QC](/integrations/qc.md) - QC runs each PR locally, by /dirox-techlead:setup-project.
+* **Added**: [Solo project: review gates are warnings](/decisions/solo-project-review-gates.md) - the QC, code review and design gates do not block merges while one person works on the project.
+* **Updated**: owners written as GitHub usernames are now emails, and command names follow the Dirox kits 2.1.5, by /dirox-techlead:setup-project.
+
 ## 2026-10-25
 * **Added**: [Libraries and pinned versions for the scaffold](/decisions/MOQ-2-libraries-and-versions.md) - MOQ-2 decision D1.
 * **Added**: [One package, one folder per module under src](/decisions/MOQ-2-folder-layout.md) - MOQ-2 decision D2.
@@ -30,5 +35,5 @@
 * **Added**: [outbound_message](/data/outbound-message.md) - MOQ-1 kickoff data entity.
 
 ## 2026-10-22
-* **Created**: [Jira](integrations/jira.md) - this project's Jira settings, by /dirox-kit:jira setup.
-* **Created**: the knowledge bundle, by /dirox-kit:setup-project.
+* **Created**: [Jira](integrations/jira.md) - this project's Jira settings, by /dirox-core:jira setup.
+* **Created**: the knowledge bundle, by /dirox-techlead:setup-project.

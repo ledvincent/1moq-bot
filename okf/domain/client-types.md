@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Client types
 description: The 13 kinds of business 1moqcustom targets (cafés and roasters to associations), plus "Other"; a lead's type decides the products proposed, its base templates, its hook, its send window and its Saturday switch
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [qualification, kickoff]
 ---

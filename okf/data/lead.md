@@ -2,7 +2,7 @@
 type: Data Entity
 title: lead
 description: One business found for outreach, with its researched facts and their sources, its email addresses, its match keys and the owner's overrides kept apart from research
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [data, kickoff]
 ---

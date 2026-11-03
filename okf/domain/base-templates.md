@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Base templates
 description: The starting text for each client type, outreach step and language (English, French), kept and edited by the owner in the tool, from which the AI writes each message with one personal line drawn from the lead's recorded facts
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [writing, kickoff]
 ---

@@ -1,4 +1,7 @@
+# Dirox kit: text files are committed and checked out with LF on every OS, so the CI script copies
+# stay identical to the kit's and an edit made on Windows does not show every line as changed.
+* text=auto eol=lf
 # Dirox kit: okf/log.md only ever gains lines, so a merge keeps both sides' lines instead of
-# stopping. GitHub's web conflict editor ignores this; /dirox-kit:close-change merges locally.
+# stopping. GitHub's web conflict editor ignores this; /dirox-dev:close-change merges locally.
 # Generated index.md files are not listed: they are regenerated, never merged.
 okf/log.md merge=union

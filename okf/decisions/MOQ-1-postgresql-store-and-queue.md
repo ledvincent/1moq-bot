@@ -2,7 +2,7 @@
 type: Decision
 title: PostgreSQL is the only data store and holds the job queue
 description: PostgreSQL on the same server as the service holds all data and the background job queue, with a daily backup kept off the server, so a restart never loses a planned send and the do-not-contact list is never lost
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [architecture, database, kickoff]
 ---

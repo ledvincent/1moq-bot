@@ -2,7 +2,7 @@
 type: Decision
 title: Send and read through the company mailbox, plain personal emails, no tracking
 description: Outreach emails go out from the company mailbox and replies and bounces are read from it, as plain personal emails with no open or click tracking, so replies land where the owner reads them and delivery is not hurt
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [sending, email, kickoff]
 ---

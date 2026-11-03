@@ -2,7 +2,7 @@
 type: Decision
 title: Claude through the Anthropic API profiles, classifies and writes
 description: One AI provider, Claude Haiku 5.5 through the Anthropic API (Batch API, prompt caching, monthly spend cap), with extraction of facts from untrusted page text kept apart from writing, and every output checked by code
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [ai, kickoff]
 ---

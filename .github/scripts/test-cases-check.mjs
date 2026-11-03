@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 // test-cases-check.mjs: reads and checks a ticket's test case file, test-cases/<KEY>.md.
-// Part of dirox-kit 1.23.0. /dirox-kit:setup-project copies it into projects as
+// Part of dirox-core. /dirox-techlead:setup-project copies it into projects as
 // .github/scripts/test-cases-check.mjs next to pr-check.mjs, which imports it: do not edit the copy.
 // No dependencies: Node 20 or later.
 //
-// The format (written by /dirox-kit:test-cases, edited by QC):
+// The format (written by /dirox-qc:test-cases, edited by QC):
 //   ---
 //   jira: PROJ-123
-//   qc: required | after-merge | none
 //   status: draft | validated
 //   cap: <capability>            (optional: the Testmo folder the cases are synced into)
+//   folder: <Testmo sub-folder>  (optional)
+// A "qc:" line (kit 2.0) is ignored: QC tests every PR that changes code since 2.1.0.
 //   ---
 //   # PROJ-123 · <ticket summary>
 //   ## Open questions            (optional)
@@ -82,7 +83,7 @@ export function parseTestCases(text, file = "") {
     });
   }
   const title = ((t.match(/^# (.+)$/m) || [])[1] || "").replace(/^[A-Z][A-Z0-9]*-\d+\s*[·\-–—:|]\s*/, "").trim();
-  return { key, title, cap: front.cap || "", qc: (front.qc || "").toLowerCase(), status: (front.status || "").toLowerCase(), front, cases };
+  return { key, title, cap: front.cap || "", status: (front.status || "").toLowerCase(), front, cases };
 }
 
 export function checkTestCases(text, file = "") {
@@ -91,7 +92,6 @@ export function checkTestCases(text, file = "") {
   const name = path.basename(file || `${p.key}.md`);
   if (!p.front.jira) errors.push(`${name}: the front matter has no "jira:" line.`);
   else if (file && path.basename(file, ".md") !== p.front.jira) errors.push(`${name}: "jira: ${p.front.jira}" does not match the file name.`);
-  if (!["required", "after-merge", "none"].includes(p.qc)) errors.push(`${name}: "qc:" must be required, after-merge or none.`);
   if (!["draft", "validated"].includes(p.status)) errors.push(`${name}: "status:" must be draft or validated.`);
   if (!p.cases.length) errors.push(`${name}: no test case (headings "## ${p.key}-01 · <title>").`);
   const seen = new Set();
@@ -152,12 +152,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   for (const f of files) {
     if (!fs.existsSync(f)) { console.error(`test-cases-check: ${f} not found`); process.exit(2); }
     const r = checkTestCases(fs.readFileSync(f, "utf8"), f);
-    out.push({ file: f, key: r.key, qc: r.qc, status: r.status, cases: r.cases, errors: r.errors });
+    out.push({ file: f, key: r.key, status: r.status, cases: r.cases, errors: r.errors });
     if (r.errors.length) failed++;
     if (!json) {
       for (const e of r.errors) console.log(`ERROR ${e}`);
       const auto = r.cases.filter((c) => c.proof === "automated").length;
-      console.log(`${f}: ${r.cases.length} case(s), ${auto} automated, ${r.cases.length - auto} manual, qc ${r.qc || "?"}, ${r.errors.length} error(s)`);
+      console.log(`${f}: ${r.cases.length} case(s), ${auto} automated, ${r.cases.length - auto} manual, ${r.errors.length} error(s)`);
     }
   }
   if (json) console.log(JSON.stringify(out, null, 2));

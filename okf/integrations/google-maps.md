@@ -2,7 +2,7 @@
 type: Integration
 title: Google Maps
 description: Finding businesses by type and city, their place details and photos; the Google Places API is the recommended source (not decided, row 4), and Google's terms limit how long Places content other than place IDs is stored
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [sourcing, google-maps, kickoff]
 ---

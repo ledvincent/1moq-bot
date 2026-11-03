@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // testmo.mjs: the kit's Testmo calls, for projects that use Testmo (okf/integrations/testmo.md).
-// Part of dirox-kit 1.23.0. /dirox-kit:setup-project copies it into projects as
+// Part of dirox-core. /dirox-techlead:setup-project copies it into projects as
 // .github/scripts/testmo.mjs next to test-cases-check.mjs, which it imports: do not edit the copy.
 // No dependencies: Node 20 or later.
 //
@@ -57,7 +57,7 @@ function parseArgs(argv) {
 
 // "- Label: `value`" lines; "none" and <placeholders> read as empty.
 export function readSettings(file = SETTINGS) {
-  if (!fs.existsSync(file)) fail(2, `${file} not found: this project does not use Testmo yet (/dirox-kit:testmo setup)`);
+  if (!fs.existsSync(file)) fail(2, `${file} not found: this project does not use Testmo yet (/dirox-qc:testmo setup)`);
   const text = fs.readFileSync(file, "utf8");
   const get = (label) => {
     const m = text.match(new RegExp(`^-\\s*${label}:\\s*\`([^\`]*)\``, "mi"));
@@ -75,7 +75,7 @@ export function readSettings(file = SETTINGS) {
     typeField: get("Type field"), typeKind: get("Type field kind"), typeSmoke: get("Type smoke"), typeRegression: get("Type regression"),
     runState: get("Run state ID"), jira: get("Jira integration ID"),
   };
-  for (const [k, label] of [["instance", "Instance"], ["project", "Project ID"]]) if (!s[k]) fail(2, `${file} has no ${label}: run /dirox-kit:testmo setup`);
+  for (const [k, label] of [["instance", "Instance"], ["project", "Project ID"]]) if (!s[k]) fail(2, `${file} has no ${label}: run /dirox-qc:testmo setup`);
   return s;
 }
 
@@ -209,7 +209,7 @@ async function rootFolder(api, s, apply, plan) {
     if (!root) fail(2, `Root folder ID ${s.rootFolderId} is not a folder of project ${s.project}`);
     return { root, folders };
   }
-  if (!s.rootFolder) fail(2, `${SETTINGS} has no Root folder ID: run /dirox-kit:testmo setup`);
+  if (!s.rootFolder) fail(2, `${SETTINGS} has no Root folder ID: run /dirox-qc:testmo setup`);
   let root = folders.find((f) => f.name === s.rootFolder && !f.parent_id);
   if (!root) {
     plan.createFolders.push(s.rootFolder);
@@ -256,7 +256,7 @@ function writeBack(file, newIds) {
 async function sync(files, opts, quiet = false) {
   if (!files.length) fail(2, "sync needs test-cases/<KEY>.md files");
   const s = readSettings();
-  if (!s.template || !s.stepsField) fail(2, `${SETTINGS} needs a Case template ID and a Steps field: run /dirox-kit:testmo setup`);
+  if (!s.template || !s.stepsField) fail(2, `${SETTINGS} needs a Case template ID and a Steps field: run /dirox-qc:testmo setup`);
   const tc = await testCasesModule();
   const api = client(s.instance, s.keyFile);
   const apply = Boolean(opts.apply);
@@ -364,7 +364,7 @@ async function run(key, all, apply) {
   const file = `test-cases/${key}.md`;
   if (!fs.existsSync(file)) fail(2, `${file} not found`);
   const s = readSettings();
-  if (!s.runState) fail(2, `${SETTINGS} has no Run state ID: run /dirox-kit:testmo setup`);
+  if (!s.runState) fail(2, `${SETTINGS} has no Run state ID: run /dirox-qc:testmo setup`);
   const tc = await testCasesModule();
   const plan = await sync([file], { apply }, true);
   const p = tc.parseTestCases(fs.readFileSync(file, "utf8"), file);
