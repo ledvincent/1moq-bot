@@ -50,9 +50,8 @@ rules:
     - 'When a requirement relies on a domain term, decision, data entity or integration, end its description with "Knowledge: `okf/<folder>/<file>.md`" instead of restating it.'
     - Scenario names are short and unique within the capability, because test names contain them.
   design:
-    - 'Mark every decision that would be costly to reverse (framework, data model, security, hosting, integration) with "Decision record needed"; /dirox-dev:close-change records it in okf/decisions/.'
+    - 'Mark every decision that would be costly to reverse (framework, data model, security, hosting, integration) with "Decision record needed", and write it under its own heading in the four parts of an okf/ decision record: Context, Decision, Alternatives considered, Consequences. Reviewers approve that text; /dirox-dev:close-change copies it into okf/decisions/, so it is written once, here.'
     - Cite the okf/decisions/ and okf/architecture/ files the design follows.
   tasks:
     - Each step leaves the code working and testable.
     - 'End with a group named "Proof": one task per scenario, written as "Test `<scenario name>` in `<test file>`". The test name contains the scenario name.'
-    - 'When test-cases/<KEY>.md exists, the Proof group also has one task per case marked "Proof: automated", written as "Test `<case ID>` in `<test file>`" (for example "Test `PROJ-123-04` in `src/reactions.test.ts`"); the test name contains the case ID. One test can carry both a scenario name and case IDs. Cases marked manual are run by QC and get no task.'

@@ -8,15 +8,15 @@
 // so it holds whether or not /dirox-dev:close-change or /dirox-techlead:review-pr were run.
 //
 // Environment:
-//   PR_BODY         the PR description
-//   PR_AUTHOR       the PR author's GitHub login: their own approval never passes a gate. A bot's PR
-//                   (a login ending in "[bot]") gets every check too, but one that changes nothing in
-//                   okf/ needs no Knowledge section: "No OKF change: automated dependency update".
+//   PR_BODY         the PR description; in CI the current one is read from GitHub instead, so a
+//                   re-run of an old run checks the description as it is now
+//   PR_AUTHOR       the PR author's GitHub login: their own approval never passes a gate. Bot PRs
+//                   get every check too.
 //   PR_DRAFT        "true" for a draft PR: every error is reported as a warning, since a draft
 //                   cannot merge and the kit opens drafts long before /dirox-dev:close-change
 //                   writes the Knowledge section, archives the change and QC approves. The
 //                   workflow runs again when the PR is marked ready, and then they are errors.
-//   PR_HEAD_REF     the PR's branch, for the ticket key (checks 11 to 14); locally, the current branch
+//   PR_HEAD_REF     the PR's branch, for the ticket key (checks 11 to 13); locally, the current branch
 //   PR_NUMBER, PR_HEAD_SHA, GITHUB_TOKEN, GITHUB_REPOSITORY
 //                   to read the PR's reviews for the gates (checks 11 to 13); without them it warns
 //   BASE_REF        the base to compare with (for example origin/main). In CI it can stay
@@ -26,10 +26,10 @@
 // Exit code: 0 = no errors (warnings allowed), 1 = errors, 2 = bad usage.
 //
 // Errors:
-//   1. The description's "## Knowledge" section is missing or empty, says "No OKF change" with
-//      no reason, or the PR changes nothing in okf/ and the section does not say
-//      "No OKF change: <reason>" (so "n/a" is not an answer). A bot's PR that changes nothing in
-//      okf/ and has no Knowledge section passes ("No OKF change: automated dependency update").
+//   1. A PR that changes okf/ or closes an OpenSpec change (archives one) has no "## Knowledge"
+//      section or an empty one; or the section says "No OKF change" with no reason, or the PR
+//      changes nothing in okf/ and the section does not say "No OKF change: <reason>" (so "n/a" is
+//      not an answer). Any other PR without the section is read as "No OKF change".
 //   2. A change archived by this PR marks more decisions "Decision record needed" in its
 //      design.md than okf/decisions/ files link to it, plus "No decision record: <reason>"
 //      lines in the Knowledge section. "No decision record needed" is not a mark.
@@ -47,16 +47,13 @@
 //      "Order total rounds up").
 //   9. A test case file this PR adds or changes (test-cases/<KEY>.md) is not well formed
 //      (test-cases-check.mjs, which sits next to this script).
-//  10. A change archived by this PR has a test case file, and an automated case has no Proof task,
-//      or a case is missing from the verification.
+//  10. (gone in 2.1.8: QC's cases, automated or manual, are QC's to run; no developer test proves them)
 //  11. QC gate: the PR changes code, and no QC reviewer (.github/qc-reviewers) has an approval
 //      that still covers it (approval.mjs, which sits next to this script, says what code is).
 //  12. Code review gate: the PR changes code, and no code reviewer (.github/code-reviewers) other
 //      than the author and QC's approver has an approval that still covers it.
 //  13. Design gate: the PR's change is big, and no design reviewer (.github/design-reviewers)
 //      approved it on a commit with no code before it.
-//  14. The PR's change is normal or big, and test-cases/<KEY>.md is missing: QC's test cases are
-//      written for every such change.
 // Warnings:
 //   4. The PR touches structural paths (schema, dependencies, deployment, env files) and changes
 //      nothing in okf/. The paths come from .github/okf-triggers.json when it exists
@@ -175,12 +172,31 @@ const changed = git("diff", "--name-status", "--no-renames", base, "HEAD")
   .split("\n").filter(Boolean)
   .map((line) => { const [status, file] = line.split("\t"); return { status, file }; });
 const okfChanged = changed.some((c) => c.file.startsWith("okf/"));
-// A bot's dependency update that touches no knowledge is assumed to say so.
-const bot = /\[bot\]$/i.test(process.env.PR_AUTHOR || "");
-const written = bodySection(process.env.PR_BODY, "Knowledge");
-const knowledge = !written && bot && !okfChanged ? "No OKF change: automated dependency update" : written;
 
-// 1. The Knowledge section is answered.
+// The description as it is now: a re-run of an old run would otherwise check the text from when that
+// run started. PR_BODY when GitHub cannot be read.
+let prBody = process.env.PR_BODY;
+{
+  const { GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER } = process.env;
+  if (GITHUB_TOKEN && GITHUB_REPOSITORY && PR_NUMBER) {
+    try {
+      const api = process.env.GITHUB_API_URL || "https://api.github.com";
+      const res = await fetch(`${api}/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}`, {
+        headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: "application/vnd.github+json" },
+      });
+      if (res.ok) { const pr = await res.json(); if (typeof pr.body === "string" || pr.body === null) prBody = pr.body || ""; }
+    } catch { /* keep PR_BODY */ }
+  }
+}
+
+// Knowledge is decided where a PR changes okf/ or closes an OpenSpec change (the knowledge retro of
+// close-change). Any other PR (a setup, settings, a chore, a trivial fix, a dependency update) with
+// no Knowledge section, or an empty one, is read as "No OKF change".
+const closesChange = changed.some((c) => c.status === "A" && /^openspec\/changes\/archive\/[^/]+\//.test(c.file));
+const written = bodySection(prBody, "Knowledge");
+const knowledge = !written && !okfChanged && !closesChange ? "No OKF change: no change closed and nothing in okf/" : written;
+
+// 1. The Knowledge section is answered, where knowledge is decided.
 // /dirox-dev:close-change writes this section; the messages say what to put there by hand.
 if (knowledge === null) {
   report("error", 'The PR description has no "## Knowledge" section. Run /dirox-dev:close-change, or add the section from .github/pull_request_template.md.');
@@ -335,31 +351,11 @@ try {
 }
 const keyOf = (s) => ((s || "").match(/[A-Z][A-Z0-9]*-\d+/i) || [""])[0].toUpperCase();
 const headRef = process.env.PR_HEAD_REF || (() => { try { return git("branch", "--show-current"); } catch { return ""; } })();
-const readCases = (key) => {
-  const file = `test-cases/${key}.md`;
-  return key && testCases && fs.existsSync(file) ? testCases.checkTestCases(fs.readFileSync(file, "utf8"), file) : null;
-};
 if (testCases) {
   // 9. Every test case file this PR adds or changes is well formed.
   for (const { status, file } of changed) {
     if (status === "D" || !/^test-cases\/[^/]+\.md$/.test(file) || /README\.md$/i.test(file) || !fs.existsSync(file)) continue;
     for (const e of testCases.checkTestCases(fs.readFileSync(file, "utf8"), file).errors) report("error", e, "Test cases");
-  }
-  // 10. A change archived by this PR: every automated case has a Proof task, and the verification covers every case.
-  for (const dir of archived) {
-    const id = changeId(dir);
-    const tc = readCases(keyOf(id));
-    if (!tc || !tc.cases.length) continue;
-    const root = path.join("openspec/changes/archive", dir);
-    const tasks = fs.existsSync(path.join(root, "tasks.md")) ? squash(fs.readFileSync(path.join(root, "tasks.md"), "utf8")) : "";
-    const noTask = tc.cases.filter((c) => c.proof === "automated" && !tasks.includes(squash(c.id))).map((c) => c.id);
-    if (noTask.length) report("error", `${id}: the automated test cases ${noTask.join(", ")} have no Proof task. Add "Test \`<case ID>\` in \`<file>\`" tasks and their tests, then /dirox-qc:verify.`, "Test cases");
-    const vfile = path.join(root, "verification.md");
-    if (fs.existsSync(vfile)) {
-      const v = squash(fs.readFileSync(vfile, "utf8"));
-      const uncovered = tc.cases.filter((c) => !v.includes(squash(c.id))).map((c) => c.id);
-      if (uncovered.length) report("error", `${id}: the verification does not cover the test cases ${uncovered.join(", ")} (added after it ran?). Run /dirox-qc:verify again.`, "Test cases");
-    }
   }
 }
 
@@ -402,21 +398,8 @@ if (approval) {
   }
 }
 
-// 14. A normal or big change has QC's test cases.
-const changeDirs = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((d) => d !== "archive").map((d) => path.join(dir, d)) : []);
-const ownChange = prKey
-  ? [...changeDirs("openspec/changes"), ...changeDirs("openspec/changes/archive")]
-    .find((d) => changeId(path.basename(d)).startsWith(`${prKey.toLowerCase()}-`) && fs.existsSync(path.join(d, "proposal.md")))
-  : null;
-if (ownChange && !changeId(path.basename(ownChange)).endsWith("-kickoff")) {
-  const size = ((fs.readFileSync(path.join(ownChange, "proposal.md"), "utf8").match(/^Size:\s*(\w+)/im) || [])[1] || "").toLowerCase();
-  if (["normal", "big"].includes(size) && !fs.existsSync(`test-cases/${prKey}.md`)) {
-    report("error", `${prKey} is a ${size} change, and test-cases/${prKey}.md is missing: every normal and big change has QC's test cases. Run /dirox-qc:test-cases ${prKey} (or /dirox-dev:start-change writes them).`, "Test cases");
-  }
-}
-
 // 15. A ready PR that changes code tells QC how to test it.
-if (!draft && code.length && !bodySection(process.env.PR_BODY, "How to test")) {
+if (!draft && code.length && !bodySection(prBody, "How to test")) {
   report("warning", 'The "How to test" section of the PR description is empty: give QC the build (preview URL or local commands), the test accounts and data by name, and the manual cases to run. /dirox-dev:implement fills it.', "How to test");
 }
 

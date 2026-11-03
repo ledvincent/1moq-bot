@@ -10,6 +10,7 @@
 //   status: draft | validated
 //   cap: <capability>            (optional: the Testmo folder the cases are synced into)
 //   folder: <Testmo sub-folder>  (optional)
+//   module: <Testmo module folder> (optional: the folder under the root the sub-folder goes in)
 // A "qc:" line (kit 2.0) is ignored: QC tests every PR that changes code since 2.1.0.
 //   ---
 //   # PROJ-123 · <ticket summary>
@@ -17,7 +18,7 @@
 //   ## PROJ-123-01 · <case title>
 //   - Priority: High | Normal
 //   - Type: smoke | regression
-//   - Proof: automated | manual (<reason>)
+//   - Proof: automated [(<what automating it needs>)] | manual (<reason>)
 //   - Covers: <the acceptance criterion or scenario>
 //   - Testmo: <case id>          (optional, once the case is in Testmo)
 //   Pre-conditions:              (optional) a list
@@ -77,6 +78,7 @@ export function parseTestCases(text, file = "") {
       priority: field("Priority"), type: field("Type"),
       proof: /^automated\b/i.test(proof) ? "automated" : /^manual\b/i.test(proof) ? "manual" : proof,
       manualReason: (proof.match(/^manual\s*\(?\s*[-—:]?\s*(.*?)\)?\s*$/i) || [])[1] || "",
+      autoNote: (proof.match(/^automated\s*\(\s*(.*?)\s*\)\s*$/i) || [])[1] || "",
       covers: field("Covers"), testmo: field("Testmo"),
       preconditions: section(lines, "Pre-conditions") || [],
       steps: section(lines, "Steps"), expected: section(lines, "Expected"),
