@@ -27,7 +27,7 @@ This change delivers everything MOQ-29 will run unchanged: the container image, 
   - It removes dumps older than 30 days.
   - On failure it exits non-zero with a clear log line and leaves no partial or unencrypted file.
   - It can run daily; MOQ-29 schedules it.
-- A restore script that rebuilds a fresh, empty stack from an encrypted dump. Every table's row count must match.
+- A restore script that rebuilds a fresh, empty stack from an encrypted dump. Every table's row count must match, except pg-boss's list of worker processes, which gains a row at each start.
 - A deploy script that switches the running image tag; redeploying the previous tag rolls a release back without touching the data.
 - No paid service and no staging environment.
 

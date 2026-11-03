@@ -5,14 +5,15 @@
 
 ## Project
 - What it is: a web tool for 1moqcustom (custom clothing and accessories in small runs) that finds small businesses on Google Maps and Instagram, researches and qualifies them, lets the owner approve each with a swipe, and sends AI-personalised cold emails and follow-ups from the company mailbox; one user, the owner.
-- Stack: TypeScript on Node.js LTS, Fastify API, React single-page app built with Vite, PostgreSQL (also the job queue), Claude Haiku 5.5 through the Anthropic API; one container on a small always-on EU server with PostgreSQL on the same server, at most €10 a month. See `okf/architecture/tech-stack.md`. Hosting provider: TODO (row 2).
+- Stack: TypeScript on Node.js LTS, Fastify API, React single-page app built with Vite, PostgreSQL (also the job queue), Claude Haiku 5.5 through the Anthropic API; one container on a small always-on EU server with PostgreSQL on the same server, at most €10 a month. See `okf/architecture/tech-stack.md`. Hosting provider: Hetzner Cloud (EU), not set up yet; MOQ-29 connects the server.
 - Architecture: `okf/architecture/overview.md`. "Row N" means a row of the kickoff backlog in `openspec/changes/archive/moq-1-kickoff-2026-10-25/proposal.md` until it has a Jira key.
 - Jira project key: MOQ (kickoff epic MOQ-1)
 
 ## Commands
 - Install: `pnpm install` (Node 24, pnpm through Corepack)
 - Run locally: `pnpm db:up` (PostgreSQL and Mailpit in Docker Compose), copy `.env.example` to `.env`, then `pnpm dev` (builds the UI, serves it and the API on http://localhost:3000); `pnpm dev:web` for UI hot reload on 5173
-- Test: `pnpm test` (unit and integration; integration needs `TEST_DATABASE_URL` and a running PostgreSQL), `pnpm test:unit` (unit only)
+- Test: `pnpm test` (unit and integration; integration needs `TEST_DATABASE_URL` and a running PostgreSQL), `pnpm test:unit` (unit only), `pnpm test:container` (image, production stack, backup, restore and rollback; needs Docker, Git Bash on Windows, `age`, and `IMAGE` set to an image built with `docker build -f deploy/Dockerfile -t 1moq-bot:local .`)
+- Local production stack (app, PostgreSQL, Caddy; runbook `okf/runbooks/local-production-stack.md`): `source deploy/lib.sh` then `moq_compose up -d`; release and rollback `bash deploy/deploy.sh <tag>|--previous`; encrypted backup `bash deploy/backup/backup.sh`; restore into an empty stack `bash deploy/backup/restore.sh <dump> <private key>` (`okf/runbooks/deploy-and-rollback.md`, `okf/runbooks/backup-and-restore.md`)
 - Lint / format: `pnpm lint` (ESLint and Prettier check), `pnpm typecheck`, `pnpm format`
 - New migration: change `src/platform/db/schema.ts`, then `pnpm db:generate`
 - Check the knowledge: `node .github/scripts/okf-validate.mjs okf`

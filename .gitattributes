@@ -2,3 +2,7 @@
 # stopping. GitHub's web conflict editor ignores this; /dirox-kit:close-change merges locally.
 # Generated index.md files are not listed: they are regenerated, never merged.
 okf/log.md merge=union
+
+# The deploy scripts and settings templates are read by bash, also in Git Bash on Windows: keep LF.
+*.sh text eol=lf
+deploy/*.env.example text eol=lf

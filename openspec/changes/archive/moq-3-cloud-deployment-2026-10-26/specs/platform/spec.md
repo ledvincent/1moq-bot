@@ -94,7 +94,7 @@ A restore script SHALL rebuild the database of a fresh, empty production stack f
 
 #### Scenario: Restore into an empty stack
 - **WHEN** the restore script is run with an encrypted dump into a fresh production stack with an empty database volume
-- **THEN** every table holds the same number of rows as in the backed-up database
+- **THEN** every table holds the same number of rows as in the backed-up database, except pg-boss's list of worker processes (`pgboss.instance`), which only gains a row each time the service starts
 - **AND** the service starts and `GET /health` answers 200
 
 ### Requirement: Release and rollback by image tag
@@ -104,4 +104,4 @@ Knowledge: `okf/architecture/overview.md`
 #### Scenario: Redeploy the previous image
 - **WHEN** a release tag is deployed and the developer then redeploys the previous tag
 - **THEN** the service runs the previous image and `GET /health` answers 200
-- **AND** every table holds the same number of rows as before the rollback
+- **AND** every table holds the same number of rows as before the rollback, except pg-boss's list of worker processes (`pgboss.instance`), which only gains a row each time the service starts

@@ -8,7 +8,7 @@ tags: [architecture, kickoff]
 ---
 # Architecture overview
 
-Planned in the MOQ-1 kickoff (`openspec/changes/archive/moq-1-kickoff-2026-10-25/design.md`). No code exists yet: this stays `draft` until the project scaffold (backlog row 1) and the cloud deployment (row 2) are built. Behaviour is in `openspec/specs/`; the "row" numbers below are the kickoff backlog in that change's `proposal.md`.
+Planned in the MOQ-1 kickoff (`openspec/changes/archive/moq-1-kickoff-2026-10-25/design.md`). The project scaffold (MOQ-2) and the production setup proven locally (MOQ-3) are built; this stays `draft` until a real server runs it (MOQ-29). Behaviour is in `openspec/specs/`; the "row" numbers below are the kickoff backlog in that change's `proposal.md`.
 
 ## Overview
 
@@ -73,7 +73,7 @@ Each one is a data processor to list for GDPR ([personal data handling](/decisio
 
 | Service | Used for | Status | More |
 |---|---|---|---|
-| Small EU server (VPS) | Runs the container and PostgreSQL | Decided ([D1](/decisions/MOQ-1-cloud-web-service.md), [D3](/decisions/MOQ-1-postgresql-store-and-queue.md)); provider in row 2 | below |
+| Small EU server (VPS) | Runs the container and PostgreSQL | Decided ([D1](/decisions/MOQ-1-cloud-web-service.md), [D3](/decisions/MOQ-1-postgresql-store-and-queue.md)); provider Hetzner Cloud (EU) chosen, not bought, connected in MOQ-29 | below |
 | PostgreSQL, same server | All data and the job queue | Decided (D3) | [lead](/data/lead.md), [outbound message](/data/outbound-message.md) |
 | Google Places API | Search, place details, photos | Recommended, not decided (open question 3, row 4) | [Google Maps](/integrations/google-maps.md) |
 | Instagram Graph API, business discovery | Profile facts by handle | Recommended, not decided (open question 4, row 7) | [Instagram](/integrations/instagram.md) |
@@ -87,13 +87,13 @@ Each one is a data processor to list for GDPR ([personal data handling](/decisio
 
 | Environment | What runs |
 |---|---|
-| Local | The developer's machine: PostgreSQL in Docker Compose, a local mail catcher for sending and reading; sources, Instagram and AI replaced by recorded fixtures in tests; real APIs only with the developer's own keys |
-| CI | GitHub Actions: lint, type check, unit and integration tests against a PostgreSQL service container, next to the existing `dirox-checks` workflow |
-| Production | One small always-on EU server running the container and PostgreSQL; secrets on the server, outside the repo; HTTPS on a subdomain of the company domain (free certificate); daily backup kept off the server; dry-run on (every email goes to an internal test address) until go-live (row 25) |
-| Staging | None at first (one user, low cost); row 2 decides whether one is needed |
+| Local | The developer's machine: PostgreSQL in Docker Compose, a local mail catcher for sending and reading; sources, Instagram and AI replaced by recorded fixtures in tests; real APIs only with the developer's own keys. The production stack also runs here with `APP_DOMAIN=localhost` ([runbook](/runbooks/local-production-stack.md)) |
+| CI | GitHub Actions: lint, type check, unit and integration tests against a PostgreSQL service container, next to the existing `dirox-checks` workflow; `image.yml` builds the image and runs the container tests (stack, backup, restore, rollback) |
+| Production | The stack in `deploy/` (MOQ-3): the app container, PostgreSQL and the Caddy HTTPS proxy, the only service publishing ports ([Caddy](/decisions/MOQ-3-caddy-https-proxy.md)); settings and secrets in `/etc/1moq/`, outside the repo and the image ([settings](/decisions/MOQ-3-settings-and-secrets.md)); age-encrypted daily dumps kept 30 days ([backups](/decisions/MOQ-3-encrypted-backups-with-age.md)); dry-run forced on in the Compose file until go-live (row 25). The server, real domain, firewall, timer and off-server copy come with MOQ-29 |
+| Staging | None (one user, low cost); the local production stack and CI stand in for it |
 
-- **Release and rollback.** One container image; a release is undone by redeploying the previous image. The pause switch stops all sending at once; backups restore data.
-- **Upkeep.** Automatic security updates and a restore procedure tested in row 2; the go-live procedure in row 25. Both become runbooks in `/runbooks/` when written.
+- **Release and rollback.** A release is an image tag; `deploy/deploy.sh` backs up, switches the tag and checks health, and `--previous` rolls back with the data untouched; migrations stay compatible with the previous release ([release by image tag](/decisions/MOQ-3-release-by-image-tag.md), [runbook](/runbooks/deploy-and-rollback.md)). The pause switch stops all sending at once; backups restore data ([runbook](/runbooks/backup-and-restore.md)).
+- **Upkeep.** Automatic security updates and a restore on the real server in MOQ-29; the go-live procedure in row 25.
 - **Budget.** At most €10 a month for everything the tool runs on, the company mailbox excluded: about €4 to 5 for the server, about €1 for backups, a few euros at most for AI, Google Maps calls likely inside Google's free monthly usage. Rows 2 and 8 confirm the figures before anything is bought.
 
 ## Decisions
@@ -106,5 +106,6 @@ Each one is a data processor to list for GDPR ([personal data handling](/decisio
 - [Lead sources only through official or provider APIs, never the company's Instagram account](/decisions/MOQ-1-lead-source-policy.md)
 - [Claude through the Anthropic API profiles, classifies and writes](/decisions/MOQ-1-claude-for-ai.md)
 - [Personal data: EU hosting, minimal data, hashed do-not-contact list, retention](/decisions/MOQ-1-personal-data-handling.md)
+- Deployment (MOQ-3): [settings and secrets](/decisions/MOQ-3-settings-and-secrets.md), [Caddy HTTPS proxy](/decisions/MOQ-3-caddy-https-proxy.md), [encrypted backups](/decisions/MOQ-3-encrypted-backups-with-age.md), [release by image tag](/decisions/MOQ-3-release-by-image-tag.md)
 
 The choices left to tickets (hosting provider, libraries, sign-in method, data sources, mailbox protocol, limits, retention periods) are listed in the kickoff design, "Decided later, in their rows". Each ticket records its own.
