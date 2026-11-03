@@ -46,7 +46,7 @@ export const NOT_CODE = [
   ".claude/CLAUDE.md", ".claude/settings.json", ".claude/skills/openspec-*/", ".claude/commands/opsx/",
   ".github/workflows/dirox-checks.yml", ".github/workflows/testmo.yml",
   ".github/scripts/approval.mjs", ".github/scripts/okf-validate.mjs", ".github/scripts/pr-check.mjs",
-  ".github/scripts/test-cases-check.mjs", ".github/scripts/testmo.mjs",
+  ".github/scripts/test-cases-check.mjs", ".github/scripts/testmo.mjs", ".github/scripts/qc-approval.mjs",
   ".github/pull_request_template.md", ".github/CODEOWNERS", ".github/okf-triggers.json",
   ".github/qc-reviewers", ".github/design-reviewers", ".github/code-reviewers", ".github/not-code",
   ".gitattributes", ".gitignore",
