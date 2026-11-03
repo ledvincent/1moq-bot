@@ -28,7 +28,7 @@ OpenSpec: `openspec validate moq-3-cloud-deployment --strict` → "Change 'moq-3
 Scope: matches the tasks, but two tasks are unticked: 2.4 (the PR's own `image.yml` run is green) and 6.1 (the developer follows `runbooks/local-production-stack.md` once by hand). Extra files not in tasks.md or design.md: `.gitattributes` (LF for `*.sh` and `deploy/*.env.example`). Also not planned: `src/platform/db/migrate.int.test.ts` and `src/platform/queue.int.test.ts`, which only add `dryRun: true` to the Config literal; the `package.json` "test" script now selects `--project unit --project integration`; and `image.yml` has an extra shellcheck step. All are small and fit tasks 2.2, 3.1, 4.x and 5.1. `ci.yml` and `docker-compose.yml` are unchanged, as planned. No planned file is missing. Code matches D1–D9: settings folders, pinned images, the compose layout, Caddy, dry-run parsing and log line, backup steps and trap, restore refusal, and deploy `--previous`.
 
 Blocking findings:
-- 10 of the 17 scenarios are proved only by container tests: Container image serves the UI and health, Container without a required secret refuses to start, Image holds no secret values, Proxy redirects to HTTPS with a local certificate, Only the proxy publishes ports (running stack), the three backup scenarios, Restore into an empty stack, and Redeploy the previous image. I could not run them here (no Docker or `age`). The tests exist, their names contain the scenario names, and they assert the WHEN/THEN. Task 6.3 says they passed on another machine, but there is no evidence of that in this check. Task 2.4 (the PR's `image.yml` run green) is still unticked. The fix is a green `Image` workflow run on the PR, or `IMAGE=1moq-bot:local pnpm test:container` on a machine with Docker and `age`.
+None.
 
 Non-blocking findings:
 - The local `main` is stale: it is behind `origin/main` by the proposal commit `e671341`. So `git diff main...HEAD` also shows the MOQ-1 and MOQ-2 files. I reviewed the change as `e671341..HEAD` (commit `06794dd`).
@@ -42,3 +42,10 @@ Non-blocking findings:
 ## Container tests run on 2026-10-26 (main session)
 
 The blocking finding was missing evidence, not a code defect: Docker Desktop and `age` are installed on this machine but are not on the verifier shell's PATH. At commit `06794dd` the main session ran `docker build -f deploy/Dockerfile -t 1moq-bot:local .`, then `IMAGE=1moq-bot:local pnpm test:container` with Docker Desktop 29.9.2, Compose v5.6.1 and age on the PATH: **Test Files 5 passed (5), Tests 10 passed (10)**. That covers image, stack, backup, restore and release. The 10 container-only scenarios above are therefore proven on this machine. The green `Image` workflow run on the PR (task 2.4) is still to come.
+
+## Resolved findings (recorded 2026-11-03)
+
+- Was blocking: 10 of the 17 scenarios are proved only by container tests: Container image serves the UI and health, Container without a required secret refuses to start, Image holds no secret values, Proxy redirects to HTTPS with a local certificate, Only the proxy publishes ports (running stack), the three backup scenarios, Restore into an empty stack, and Redeploy the previous image. The verifier could not run them (no Docker or `age` on its PATH). The finding asked for a green `Image` workflow run on the PR, or `IMAGE=1moq-bot:local pnpm test:container` on a machine with Docker and `age`. Both now exist:
+  - The local container run above, at `06794dd`: 5 files and 10 tests passed.
+  - The PR's `container` check is green at head `5a57732` (https://github.com/ledvincent/1moq-bot/actions/runs/40289861314/job/121462105297). This closes task 2.4.
+  - The only commits after `06794dd` are `3d86d6a` (verification) and `5a57732` (close: OKF retro, runbooks, archive). Neither changes the code under test.
