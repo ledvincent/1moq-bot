@@ -17,8 +17,8 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p web/tsconfig.json",
-    "test": "vitest run --project unit --project integration",
-    "test:unit": "vitest run --project unit",
+    "test": "vitest run --project unit --project web --project integration",
+    "test:unit": "vitest run --project unit --project web",
     "test:container": "vitest run --project container"
   },
   "dependencies": {
@@ -43,6 +43,7 @@
     "eslint": "10.13.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-react-hooks": "7.1.1",
+    "happy-dom": "21.0.4",
     "prettier": "3.9.10",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.0",

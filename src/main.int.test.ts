@@ -53,7 +53,9 @@ describe('service start', () => {
 
       const bundle = await fetch(new URL(script!, service.url));
       expect(bundle.status).toBe(200);
-      expect(await bundle.text()).toContain('1moq-bot');
+      const code = await bundle.text();
+      expect(code).toContain('1moq-bot');
+      expect(code).toContain('Overview');
     } finally {
       await service.stop();
     }

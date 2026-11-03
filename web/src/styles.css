@@ -1,0 +1,266 @@
+/* The owner's app style (MOQ-30 design D4): black on white, system fonts, no external file. */
+:root {
+  --ink: #000;
+  --paper: #fff;
+  --grey: #767676;
+  --line: #e5e5e5;
+  --font: -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --size-title: 48px;
+  --size-section: 24px;
+  --size-body: 17px;
+  --size-small: 14px;
+  --column: 1100px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--size-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.menu {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+
+.menu a {
+  text-decoration: none;
+  color: var(--grey);
+}
+
+.menu a:hover {
+  color: var(--ink);
+}
+
+.menu a[aria-current='page'] {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
+}
+
+.top-bar-slot {
+  min-width: 80px;
+  text-align: right;
+}
+
+.page {
+  max-width: var(--column);
+  margin: 0 auto;
+  padding: 56px 40px 96px;
+}
+
+.page-header {
+  margin-bottom: 40px;
+}
+
+.page-title-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: var(--size-title);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+h2 {
+  margin: 56px 0 16px;
+  font-size: var(--size-section);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.page-lede,
+.muted {
+  color: var(--grey);
+}
+
+.sample-marker {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  font-size: var(--size-small);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.notice {
+  margin-bottom: 32px;
+  padding: 16px 20px;
+  border: 2px solid var(--ink);
+  font-weight: 600;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: var(--size-small);
+  font-weight: 600;
+  color: var(--grey);
+  border-bottom: 1px solid var(--ink);
+  padding: 10px 12px 10px 0;
+}
+
+.table td {
+  border-bottom: 1px solid var(--line);
+  padding: 14px 12px 14px 0;
+  vertical-align: top;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.stat {
+  border-top: 2px solid var(--ink);
+  padding-top: 16px;
+}
+
+.stat a {
+  text-decoration: none;
+}
+
+.stat-value {
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.stat-label {
+  margin-top: 8px;
+  color: var(--grey);
+}
+
+.button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 22px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.button-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.form {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  font-size: var(--size-body);
+  padding: 9px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+textarea {
+  width: 100%;
+  min-height: 240px;
+  line-height: 1.5;
+}
+
+.review-card {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 40px;
+}
+
+.pictures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.picture {
+  aspect-ratio: 1;
+  background: var(--line);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--grey);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.strong {
+  font-weight: 700;
+}
