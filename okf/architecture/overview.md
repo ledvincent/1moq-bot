@@ -61,8 +61,7 @@ One module per capability, so a ticket stays inside one folder. Folder names and
 
 ## Entry points
 
-Names are a starting point; each row fixes its own.
-- **UI pages** (signed in): `/review` (home), `/leads` and `/leads/:id`, `/find`, `/to-do`, `/results`, `/templates`, `/settings`.
+- **UI pages** (signed in), fixed by [the page map](/decisions/MOQ-30-page-map-and-addresses.md), in menu order: Overview `/` (home), Find leads `/find`, Review `/review`, Leads `/leads` and `/leads/:id`, Emails `/emails`, Templates `/templates`, Results `/results`, Settings `/settings`. There is no `/review` home and no `/to-do` page: leads to contact by hand and Instagram DMs due are a section of Emails. MOQ-4 adds `/sign-in` and `/setup` outside the menu. Any other address shows "Page not found"; the server answers `index.html` for a GET or HEAD outside `/api` and `/u`. The pages are built in [the UI style](/architecture/ui-style.md); which ticket connects each action is in `web/src/app/connected-by.ts`.
 - **Public** (no sign-in): `GET /u/:token` shows the unsubscribe page with a confirm button (mail scanners open links, so a GET never opts out); `POST /u/:token` opts out, for the button and for one-click unsubscribe from mail apps. `GET /health` for the host.
 - **JSON API** under `/api/*` (signed in), listed in the kickoff design.
 - **Jobs** (PostgreSQL-backed queue): `search.run`, `lead.enrich`, `lead.qualify`, `email.write`, `send.tick` (every 5 minutes), `inbox.poll` (every 5 minutes and at the start of each `send.tick`), `retention.sweep` (daily).

@@ -25,7 +25,7 @@
 - [x] 4.4 Build the Leads list (status filter on the sample data) and the lead page (`/leads/:id`: facts with source, status, flags, history; unknown id shows "Page not found"); verify the Leads tests in `web/src/pages/pages.test.tsx` pass
 - [x] 4.5 Build the Emails, Templates, Results and Settings pages with their actions (D6; the do-not-contact field is cleared after use); verify the page tests in `web/src/pages/pages.test.tsx` for these pages pass
 - [x] 4.6 Update the UI-shell test in `src/main.int.test.ts` to also check the bundle contains `Overview` (D8, same test name); verify `pnpm test` passes
-- [ ] 4.7 Run `pnpm lint`, `pnpm typecheck` and `pnpm test`; then `pnpm dev` and open each page in Chrome (and Safari on the Mac when available) to check the style by eye, reloading each address once; note the result in the PR
+- [x] 4.7 Run `pnpm lint`, `pnpm typecheck` and `pnpm test`; then `pnpm dev` and open each page in Chrome (and Safari on the Mac when available) to check the style by eye, reloading each address once; note the result in the PR
 
 ## 5. Proof
 

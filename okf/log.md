@@ -1,5 +1,12 @@
 # Knowledge log
 
+## 2026-11-04
+* **Added**: [The owner's app has eight pages at fixed addresses, with the Overview as home](/decisions/MOQ-30-page-map-and-addresses.md) - MOQ-30 decision D1.
+* **Added**: [Page tests render React with happy-dom, without a testing library](/decisions/MOQ-30-page-tests-with-happy-dom.md) - MOQ-30 decision D7.
+* **Added**: [UI style](/architecture/ui-style.md) - MOQ-30 design D4, the style later UI tickets follow.
+* **Updated**: [Architecture overview](/architecture/overview.md) - Entry points now list the MOQ-30 page map (Overview home, no /to-do).
+* **Updated**: [Tech stack](/architecture/tech-stack.md) - happy-dom 21.0.4 and the web Vitest project, by MOQ-30.
+
 ## 2026-11-03
 * **Added**: [QC](/integrations/qc.md) - QC runs each PR locally, by /dirox-techlead:setup-project.
 * **Added**: [Solo project: review gates are warnings](/decisions/solo-project-review-gates.md) - the QC, code review and design gates do not block merges while one person works on the project.

@@ -24,7 +24,8 @@ Exact pins as in `package.json`.
 | Database | PostgreSQL, on the same server as the service (not managed) | 18 (`postgres:18` locally and in CI; `postgres:18.6` in the production stack) |
 | ORM and migrations | Drizzle ORM, drizzle-kit, `pg` driver; SQL migrations in `drizzle/`, applied at start | 0.45.4, 0.31.11, 8.23.1 |
 | Job queue | pg-boss, on the same PostgreSQL | 12.38.0 |
-| Tests | Vitest, unit and integration projects (integration needs `TEST_DATABASE_URL`) | 5.0.5 |
+| Tests | Vitest, unit, web and integration projects (integration needs `TEST_DATABASE_URL`) | 5.0.5 |
+| Page tests | happy-dom (dev), the DOM for the `web` Vitest project, no testing library ([decision](/decisions/MOQ-30-page-tests-with-happy-dom.md)) | 21.0.4 |
 | Lint and format | ESLint, typescript-eslint, `@eslint/js`, `eslint-plugin-react-hooks`, `eslint-config-prettier`; Prettier | 10.13.0, 8.72.0, 10.0.1, 7.1.1, 10.1.8; 3.9.10 |
 | IANA time zones | Luxon, `@types/luxon` | 3.7.2, 3.7.6 |
 | Types | `@types/node` (matches Node 24), `@types/react`, `@types/react-dom`, `@types/pg` | 24.19.2, 19.3.0, 19.3.0, 8.23.1 |
