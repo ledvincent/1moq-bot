@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // testmo.mjs: the kit's Testmo calls, for projects that use Testmo (okf/integrations/testmo.md).
-// Part of dirox-kit 1.23.0. /dirox-kit:setup-project copies it into projects as
+// Part of dirox-core. /dirox-techlead:setup-project copies it into projects as
 // .github/scripts/testmo.mjs next to test-cases-check.mjs, which it imports: do not edit the copy.
 // No dependencies: Node 20 or later.
 //
@@ -57,7 +57,7 @@ function parseArgs(argv) {
 
 // "- Label: `value`" lines; "none" and <placeholders> read as empty.
 export function readSettings(file = SETTINGS) {
-  if (!fs.existsSync(file)) fail(2, `${file} not found: this project does not use Testmo yet (/dirox-kit:testmo setup)`);
+  if (!fs.existsSync(file)) fail(2, `${file} not found: this project does not use Testmo yet (/dirox-qc:testmo setup)`);
   const text = fs.readFileSync(file, "utf8");
   const get = (label) => {
     const m = text.match(new RegExp(`^-\\s*${label}:\\s*\`([^\`]*)\``, "mi"));
@@ -75,7 +75,7 @@ export function readSettings(file = SETTINGS) {
     typeField: get("Type field"), typeKind: get("Type field kind"), typeSmoke: get("Type smoke"), typeRegression: get("Type regression"),
     runState: get("Run state ID"), jira: get("Jira integration ID"),
   };
-  for (const [k, label] of [["instance", "Instance"], ["project", "Project ID"]]) if (!s[k]) fail(2, `${file} has no ${label}: run /dirox-kit:testmo setup`);
+  for (const [k, label] of [["instance", "Instance"], ["project", "Project ID"]]) if (!s[k]) fail(2, `${file} has no ${label}: run /dirox-qc:testmo setup`);
   return s;
 }
 
@@ -167,6 +167,10 @@ function textOf(s, lines, numberedList) {
   return `<p>${(numberedList ? numbered(lines) : lines).map(esc).join("<br />")}</p>`;
 }
 
+// QC's Note: "Automation: Manual — <reason>", or "Automation: To be automated", with what automating it
+// needs when the case says ("Proof: automated (<note>)").
+const automationNote = (c) => (c.proof === "manual" ? `Automation: Manual — ${c.manualReason}` : `Automation: To be automated${c.autoNote ? " — " + c.autoNote : ""}`);
+
 export function caseFields(s, p, c) {
   const f = {};
   const steps = textOf(s, c.steps, true);
@@ -183,7 +187,7 @@ export function caseFields(s, p, c) {
   }
   const site = jiraSite();
   if (s.referenceField && site) f[s.referenceField] = `<p>${esc(`https://${site}/browse/${p.key}`)}</p>`;
-  if (s.noteField) f[s.noteField] = `<p>${esc(c.proof === "manual" ? `Automation: Manual — ${c.manualReason}` : "Automation: To be automated")}</p>`;
+  if (s.noteField) f[s.noteField] = `<p>${esc(automationNote(c))}</p>`;
   if (s.priorityField) {
     const v = c.priority === "High" ? s.priorityHigh : s.priorityNormal;
     if (v) f[s.priorityField] = Number(v);
@@ -199,6 +203,9 @@ const caseName = (s, c) => (s.caseName === "id-title" ? `${c.id} · ${c.title}` 
 // The sub-folder, as QC names it: the file's "folder:" line (their CSV "Folder" column, a feature or
 // section name such as "App ADV - Carelog reactions"), else the ticket title.
 const folderName = (s, p) => (s.groupBy === "capability" ? p.cap || "Unsorted" : p.front.folder || p.title || p.key);
+// The folders under the root, outermost first: the file's "module:" line (the module folder QC's push
+// takes as its parent, such as "Profil"), then the ticket's sub-folder. Grouped by capability: no module.
+const folderPath = (s, p) => (s.groupBy !== "capability" && p.front.module ? [p.front.module, folderName(s, p)] : [folderName(s, p)]);
 const folderUrl = (s, id) => (id ? `${s.instance}/repositories/${s.project}?group_id=${id}` : null);
 
 // ---------------------------------------------------------------- Testmo lookups
@@ -209,7 +216,7 @@ async function rootFolder(api, s, apply, plan) {
     if (!root) fail(2, `Root folder ID ${s.rootFolderId} is not a folder of project ${s.project}`);
     return { root, folders };
   }
-  if (!s.rootFolder) fail(2, `${SETTINGS} has no Root folder ID: run /dirox-kit:testmo setup`);
+  if (!s.rootFolder) fail(2, `${SETTINGS} has no Root folder ID: run /dirox-qc:testmo setup`);
   let root = folders.find((f) => f.name === s.rootFolder && !f.parent_id);
   if (!root) {
     plan.createFolders.push(s.rootFolder);
@@ -220,15 +227,23 @@ async function rootFolder(api, s, apply, plan) {
   return { root, folders };
 }
 
-async function subFolder(api, s, ctx, name, apply, plan) {
-  if (!ctx.root) return null;
-  let f = ctx.folders.find((x) => x.parent_id === ctx.root.id && x.name === name);
-  if (f) return f;
-  plan.createFolders.push(`${ctx.root.name}/${name}`);
-  if (!apply) return null;
-  f = (await api.call("POST", `/projects/${s.project}/folders`, { folders: [{ name, parent_id: ctx.root.id }] })).result[0];
-  ctx.folders.push(f);
-  return f;
+// The folder at the end of names under the root, each found by name under the one before, else
+// created (a dry run only lists it, and every folder below a missing one is missing too).
+async function subFolder(api, s, ctx, names, apply, plan) {
+  let parent = ctx.root;
+  const trail = [ctx.root ? ctx.root.name : s.rootFolder];
+  for (const name of names) {
+    trail.push(name);
+    let f = parent && ctx.folders.find((x) => x.parent_id === parent.id && x.name === name);
+    if (!f) {
+      if (!plan.createFolders.includes(trail.join("/"))) plan.createFolders.push(trail.join("/"));
+      if (!apply || !parent) { parent = null; continue; }
+      f = (await api.call("POST", `/projects/${s.project}/folders`, { folders: [{ name, parent_id: parent.id }] })).result[0];
+      ctx.folders.push(f);
+    }
+    parent = f;
+  }
+  return parent;
 }
 
 // Write "- Testmo: <id>" into each new case's block, right after its "- Covers:" line. Only that line
@@ -256,7 +271,7 @@ function writeBack(file, newIds) {
 async function sync(files, opts, quiet = false) {
   if (!files.length) fail(2, "sync needs test-cases/<KEY>.md files");
   const s = readSettings();
-  if (!s.template || !s.stepsField) fail(2, `${SETTINGS} needs a Case template ID and a Steps field: run /dirox-kit:testmo setup`);
+  if (!s.template || !s.stepsField) fail(2, `${SETTINGS} needs a Case template ID and a Steps field: run /dirox-qc:testmo setup`);
   const tc = await testCasesModule();
   const api = client(s.instance, s.keyFile);
   const apply = Boolean(opts.apply);
@@ -267,11 +282,11 @@ async function sync(files, opts, quiet = false) {
     if (!fs.existsSync(file)) { plan.files.push({ file, error: "not found" }); continue; }
     const p = tc.checkTestCases(fs.readFileSync(file, "utf8"), file);
     if (p.errors.length) { plan.files.push({ file, error: p.errors.join(" ") }); continue; }
-    const folder = await subFolder(api, s, ctx, folderName(s, p), apply, plan);
+    const folder = await subFolder(api, s, ctx, folderPath(s, p), apply, plan);
     const inFolder = folder ? await api.all(`/projects/${s.project}/cases?folder_id=${folder.id}`) : [];
     const byName = new Map(inFolder.map((c) => [c.name, c]));
     const issues = s.jira ? [{ display_id: p.key, integration_id: Number(s.jira) }] : undefined;
-    const out = { file, key: p.key, folder: `${ctx.root ? ctx.root.name : s.rootFolder}/${folderName(s, p)}`, create: [], update: [], skip: [], folder_url: folderUrl(s, folder && folder.id) };
+    const out = { file, key: p.key, folder: [ctx.root ? ctx.root.name : s.rootFolder, ...folderPath(s, p)].join("/"), create: [], update: [], skip: [], folder_url: folderUrl(s, folder && folder.id) };
     const toCreate = [];
     const seen = new Set();
     for (const c of p.cases) {
@@ -364,7 +379,7 @@ async function run(key, all, apply) {
   const file = `test-cases/${key}.md`;
   if (!fs.existsSync(file)) fail(2, `${file} not found`);
   const s = readSettings();
-  if (!s.runState) fail(2, `${SETTINGS} has no Run state ID: run /dirox-kit:testmo setup`);
+  if (!s.runState) fail(2, `${SETTINGS} has no Run state ID: run /dirox-qc:testmo setup`);
   const tc = await testCasesModule();
   const plan = await sync([file], { apply }, true);
   const p = tc.parseTestCases(fs.readFileSync(file, "utf8"), file);
@@ -427,7 +442,7 @@ async function csv(file) {
     row[CSV_COL.folder] = p.front.folder || p.title || p.key;
     row[CSV_COL.forecast] = estimate;
     row[CSV_COL.issues] = p.key;
-    row[CSV_COL.note] = c.proof === "manual" ? "Automation: Manual — " + c.manualReason : "Automation: To be automated";
+    row[CSV_COL.note] = automationNote(c);
     // The writer starts pre-conditions with "User: Guest." or "User: Logged In.", as QC's builder does.
     row[CSV_COL.preCondition] = c.preconditions.join("\n");
     row[CSV_COL.priority] = c.priority;
@@ -465,6 +480,8 @@ async function info(a) {
     case_fields: fields.map((f) => ({ name: f.name, column_name: f.column_name, type: f.type, options: (f.options || []).flatMap((o) => (o.values || []).map((v) => ({ id: v.id, name: v.name }))) })),
     states: states.map((x) => ({ id: x.id, name: x.name, is_default: x.is_default })),
     folders: folders.filter((f) => !f.parent_id || String(f.id) === String(a.folder || "")).map((f) => ({ id: f.id, name: f.name })),
+    // With --folder: the folders right under it (the modules QC pushes tickets into).
+    ...(a.folder ? { sub_folders: folders.filter((f) => String(f.parent_id) === String(a.folder)).map((f) => ({ id: f.id, name: f.name })) } : {}),
     issue_connections: connections.map((c) => ({ integration_id: c.integration_id, name: c.connection_name, project: c.connection_project_name })),
   }, null, 2));
 }

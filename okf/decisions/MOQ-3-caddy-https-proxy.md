@@ -2,7 +2,7 @@
 type: Decision
 title: Caddy is the HTTPS proxy and the only service that publishes ports
 description: Caddy in front of the app terminates HTTPS, redirects HTTP, and gets and renews certificates by itself (Caddy's local authority for localhost, Let's Encrypt for a public name); the address comes only from the APP_DOMAIN setting, and PostgreSQL and the app publish no port
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [deployment, https]
 ---

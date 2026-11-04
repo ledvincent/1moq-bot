@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Do-not-contact list
 description: The email addresses that must never be emailed again, whatever happens to their lead; filled by unsubscribes, requests the owner records and erasures, kept for good as a keyed hash, never emptied
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [compliance, gdpr, kickoff]
 ---

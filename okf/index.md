@@ -35,6 +35,7 @@ okf_version: "0.2"
 * [PostgreSQL is the only data store and holds the job queue](decisions/MOQ-1-postgresql-store-and-queue.md) - PostgreSQL on the same server as the service holds all data and the background job queue, with a daily backup kept off the server, so a restart never loses a planned send and the do-not-contact list is never lost
 * [Send and read through the company mailbox, plain personal emails, no tracking](decisions/MOQ-1-company-mailbox-sending.md) - Outreach emails go out from the company mailbox and replies and bounces are read from it, as plain personal emails with no open or click tracking, so replies land where the owner reads them and delivery is not hurt
 * [Settings and secrets live in files outside the repository, one compose command runs the stack](decisions/MOQ-3-settings-and-secrets.md) - The production settings (app.env, backup.env, release.env) live in a folder outside the repository - /etc/1moq on the server, a git-ignored .deploy-local/ locally - with placeholder-only templates in deploy/, and deploy/lib.sh builds the one compose command every script, test and person uses
+* [Solo project: review gates are warnings](decisions/solo-project-review-gates.md) - While one person builds 1moq-bot, the Dirox PR check reports the QC, code review and design gates as warnings instead of blocking the merge; the other Dirox checks still block
 * [The page is served by an always-on web service in the cloud](decisions/MOQ-1-cloud-web-service.md) - One web service on a small always-on EU server serves the owner's UI and runs all background work, so emails, follow-ups and unsubscribe work while the owner's Mac is off, within €10 a month
 * [TypeScript on Node.js with Fastify and React, one deployable](decisions/MOQ-1-typescript-stack.md) - TypeScript everywhere on the current Node.js LTS, a Fastify API serving a React UI built with Vite, web server and job worker in one container, so one language covers the UI, the API and the jobs
 
@@ -49,7 +50,8 @@ okf_version: "0.2"
 * [Company mailbox](integrations/company-mailbox.md) - Sending every outreach email from the company mailbox and reading its inbox for replies, auto-replies and bounces; blocked by the separate mailbox and domain ticket, protocol chosen in row 16
 * [Google Maps](integrations/google-maps.md) - Finding businesses by type and city, their place details and photos; the Google Places API is the recommended source (not decided, row 4), and Google's terms limit how long Places content other than place IDs is stored
 * [Instagram](integrations/instagram.md) - Read-only Instagram facts for leads whose handle is known (followers, bio, website, recent posts) through the Graph API's business discovery (recommended, not decided, row 7); the company's own account is never signed in to or automated
-* [Jira](integrations/jira.md) - How this project's Jira is set up - project key, where acceptance criteria live, issue types, the status for each stage, the dependency link type and the ticket labels; read by /dirox-kit:jira and the other commands
+* [Jira](integrations/jira.md) - How this project's Jira is set up - project key, where acceptance criteria live, issue types, the status for each stage, the dependency link type and the ticket labels; read by /dirox-core:jira and the other commands
+* [QC](integrations/qc.md) - How QC gets a build of each PR to test - a preview, or the commands to run it locally; read by /dirox-dev:implement (the PR's "How to test"), /dirox-core:next and QC
 
 # Runbooks
 

@@ -2,7 +2,7 @@
 type: Decision
 title: Every email is checked by the send gate at the moment it is sent
 description: Emails are planned ahead as one row per lead and step, and each is claimed and checked in one transaction right before it goes to the mailbox (approval, opt-out, reply, window, limits, footer), so a late reply or withdrawal is never missed and nothing is sent twice
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [sending, compliance, kickoff]
 ---

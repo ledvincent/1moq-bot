@@ -2,7 +2,7 @@
 type: Runbook
 title: Deploy a release and roll it back
 description: Build and tag an image, deploy the tag with deploy/deploy.sh (backup first, health check, releases log), roll back with --previous, and the rule that keeps migrations compatible with the previous release
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [deployment, release]
 ---

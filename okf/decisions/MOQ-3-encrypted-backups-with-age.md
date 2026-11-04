@@ -2,7 +2,7 @@
 type: Decision
 title: Database backups are age-encrypted dumps, kept 30 days, readable only with a private key held outside the stack
 description: backup.sh streams pg_dump through age to the backup public key, so nothing unencrypted touches disk, keeps dumps 30 days and fails loudly with no partial file; restore.sh decrypts where the private key is and refuses a non-empty database
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [deployment, backup, personal-data]
 ---

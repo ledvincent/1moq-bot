@@ -2,7 +2,7 @@
 type: Decision
 title: The page is served by an always-on web service in the cloud
 description: One web service on a small always-on EU server serves the owner's UI and runs all background work, so emails, follow-ups and unsubscribe work while the owner's Mac is off, within €10 a month
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [architecture, hosting, kickoff]
 ---

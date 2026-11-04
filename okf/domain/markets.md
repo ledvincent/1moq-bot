@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Markets
 description: The countries 1moqcustom targets in three phases (EU, UK and Australia; then Singapore; then the United States), the active markets setting that flags leads elsewhere, and the language each lead is written to
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [qualification, compliance, kickoff]
 ---

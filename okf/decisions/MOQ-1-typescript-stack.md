@@ -2,7 +2,7 @@
 type: Decision
 title: TypeScript on Node.js with Fastify and React, one deployable
 description: TypeScript everywhere on the current Node.js LTS, a Fastify API serving a React UI built with Vite, web server and job worker in one container, so one language covers the UI, the API and the jobs
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [architecture, stack, kickoff]
 ---

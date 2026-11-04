@@ -1,5 +1,9 @@
 # Knowledge log
 
+## 2026-11-03
+* **Added**: [QC](/integrations/qc.md) - QC runs each PR locally, by /dirox-techlead:setup-project.
+* **Added**: [Solo project: review gates are warnings](/decisions/solo-project-review-gates.md) - the QC, code review and design gates do not block merges while one person works on the project.
+* **Updated**: owners written as GitHub usernames are now emails, and command names follow the Dirox kits 2.1.5, by /dirox-techlead:setup-project.
 ## 2026-10-26
 * **Added**: [Settings and secrets live in files outside the repository, one compose command runs the stack](/decisions/MOQ-3-settings-and-secrets.md) - MOQ-3 decisions D1 and D5.
 * **Added**: [Caddy is the HTTPS proxy and the only service that publishes ports](/decisions/MOQ-3-caddy-https-proxy.md) - MOQ-3 decision D4.
@@ -41,5 +45,5 @@
 * **Added**: [outbound_message](/data/outbound-message.md) - MOQ-1 kickoff data entity.
 
 ## 2026-10-22
-* **Created**: [Jira](integrations/jira.md) - this project's Jira settings, by /dirox-kit:jira setup.
-* **Created**: the knowledge bundle, by /dirox-kit:setup-project.
+* **Created**: [Jira](integrations/jira.md) - this project's Jira settings, by /dirox-core:jira setup.
+* **Created**: the knowledge bundle, by /dirox-techlead:setup-project.

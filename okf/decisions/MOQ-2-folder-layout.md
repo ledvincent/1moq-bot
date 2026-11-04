@@ -2,7 +2,7 @@
 type: Decision
 title: One package, one folder per module under src
 description: One package (no monorepo) with the server in src/<module>/, the UI in web/, tests next to the code and shared platform code in src/platform; a module's folder is created by the first ticket that needs it
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [architecture, layout]
 ---

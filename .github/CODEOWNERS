@@ -2,12 +2,12 @@
 # (for example @acme/ba-team), then turn on "Require review from Code Owners"
 # in the branch protection of the main branch.
 # The last matching line wins. One owner's approval satisfies a line.
+# Behaviour (openspec/) has no owner here: the design gate covers big changes
+# (.github/design-reviewers), and the code reviewer reads a normal change's specs.
+# The rest of okf/ (the log, data, integrations, runbooks) is reviewed by the code reviewer.
 
-# Behaviour: the BA or the Architect approves proposals and spec changes.
-/openspec/                 @ledvincent
-
-# Knowledge: decisions and architecture belong to the architects.
-/okf/                      @ledvincent
+# Knowledge: domain terms belong to the BA, decisions and architecture to the architects.
+/okf/domain/               @ledvincent
 /okf/decisions/            @ledvincent
 /okf/architecture/         @ledvincent
 

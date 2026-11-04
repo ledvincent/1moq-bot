@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Outreach sequence
 description: The contacts an approved lead with an email gets - intro on day 1, an Instagram DM by hand on day 3, follow-ups on days 6 and 12, a last email on day 21 - counted from the intro actually sent, in its client type's morning window, within daily limits, until it replies, opts out or bounces
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [sending, kickoff]
 ---

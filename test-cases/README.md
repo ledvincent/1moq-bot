@@ -2,11 +2,11 @@
 
 One file per Jira ticket: `test-cases/<KEY>.md` (for example `test-cases/PROJ-123.md`). Added by the Dirox kit.
 
-- **Who writes them.** `/dirox-kit:test-cases <KEY>` drafts them from the ticket alone (never from the code), when the ticket enters a sprint, and opens the ticket's draft PR. `/dirox-kit:start-change` drafts them if nobody has yet.
-- **Who owns them.** For a ticket with `qc: required` or `qc: after-merge`, QC owns the file: QC edits, adds and validates cases on the ticket's branch, and nobody else edits it by hand. A developer who disagrees with a case asks in the PR. For `qc: none`, the developer owns it.
+- **Who writes them.** `/dirox-qc:test-cases <KEY>` drafts them from the ticket alone (never from the code), when the ticket enters a sprint, and opens the ticket's draft PR. They are optional: QC writes them for the tickets that need them, and a small fix usually does not. A ticket without a file is proven by its scenarios' tests, and QC still tests its build before approving the PR.
+- **Who owns them.** QC: QC edits, adds and validates cases on the ticket's branch, and nobody else edits the file by hand. A developer who disagrees with a case asks in the PR.
 - **Frozen once validated.** With `status: validated`, a new case is a bug found while testing; more coverage is a new ticket. Rewording is always fine: only an automated case added, or an automated case's expected result changed, sends the developer back to verify.
-- **How they are proven.** Every `Proof: automated` case gets a developer test whose name contains the case ID (`PROJ-123-01`); the verifier checks it. `Proof: manual (<reason>)` cases are run by QC on the PR's build.
-- **The merge gate.** With `qc: required`, CI blocks the merge of the code until a QC reviewer listed in `.github/qc-reviewers` approves the PR. With `qc: after-merge`, QC tests after the merge, and the release waits for that check instead.
+- **How they are run.** All by QC. `Proof: automated` cases QC scripts end to end in its own automation, with the case ID (`PROJ-123-01`) in the test's name so Testmo links the results; `Proof: manual (<reason>)` cases QC runs by hand on the PR's build. Developers write no test for them: their unit and scenario tests prove the code.
+- **The merge gate.** CI blocks the merge of every PR that changes code until a QC reviewer listed in `.github/qc-reviewers` has tested its build and approved it, and the approval still covers the code.
 - **After the merge** the file stays here: this folder is the project's catalog of test cases, for regression runs.
 
 ## Format
@@ -16,7 +16,6 @@ Check a file with `node .github/scripts/test-cases-check.mjs test-cases/<KEY>.md
 ```markdown
 ---
 jira: PROJ-123
-qc: required
 status: draft
 cap: care-log
 folder: App ADV - Carelog reactions
@@ -45,9 +44,9 @@ Expected:
 2. Below it: "1" in bold, the heart icon and "Merci", then "Julie MARTIN"
 ```
 
-- `qc`: `required`, `after-merge` or `none`, decided by the PM on the ticket (Jira label `qc:required`, `qc:after-merge` or `qc:none`). `after-merge` is for projects where QC cannot get a build of each PR (`okf/integrations/qc.md`): the PR merges without QC's approval, and a QC check ticket holds back the release.
 - `folder` (optional, projects that use Testmo): the Testmo sub-folder the cases go into, as QC names it (their CSV "Folder" column); without it, the ticket title.
+- `module` (optional, projects that use Testmo): the module folder, under the Testmo root folder, that the sub-folder goes into (for example `Profil`), one of the `Modules` in `okf/integrations/testmo.md`; without it, the sub-folder sits right under the root.
 - `cap` (optional): the capability, as in `openspec/specs/`. In a project that uses Testmo, the cases are synced into that capability's folder, so QC's regression suite follows features rather than tickets.
-- `status`: `draft` until QC (or, for `qc: none`, the developer) has reviewed the cases, then `validated`.
-- Each case: `Priority` (High, Normal), `Type` (smoke, regression), `Proof` (`automated`, or `manual (<reason>)`), `Covers`, and `Testmo: <case id>` once the case is in Testmo (written by `/dirox-kit:testmo sync`, in projects that use Testmo); then `Pre-conditions:`, `Steps:` (numbered, at least one) and `Expected:` (at least one).
+- `status`: `draft` until QC has reviewed the cases, then `validated`.
+- Each case: `Priority` (High, Normal), `Type` (smoke, regression), `Proof` (`automated`, optionally with what automating it needs, such as `automated (needs a staging report that already has one reaction)`; or `manual (<reason>)`), `Covers`, and `Testmo: <case id>` once the case is in Testmo (written by `/dirox-qc:testmo sync`, in projects that use Testmo); then `Pre-conditions:`, `Steps:` (numbered, at least one) and `Expected:` (at least one).
 - Synthetic test data only: never real customer or personal data.

@@ -2,7 +2,7 @@
 type: Integration
 title: Instagram
 description: Read-only Instagram facts for leads whose handle is known (followers, bio, website, recent posts) through the Graph API's business discovery (recommended, not decided, row 7); the company's own account is never signed in to or automated
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [sourcing, enrichment, instagram, kickoff]
 ---

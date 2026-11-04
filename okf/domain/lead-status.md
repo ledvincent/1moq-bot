@@ -2,7 +2,7 @@
 type: Glossary Term
 title: Lead status
 description: The one current status of each lead in the outreach - found, waiting for review, approved, rejected, to contact by hand, emailed, replied, opted out, bounced, sequence finished - and what moves a lead from one to the next
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [tracking, kickoff]
 ---
