@@ -139,7 +139,7 @@ The runbook drafts (`runbooks/local-production-stack.md`, `runbooks/backup-and-r
   4. Start the whole stack (the migrations apply nothing, or only newer ones) and wait for the app to be healthy.
   - Decryption happens where the script runs, so the key stays on the machine that holds it.
   - How MOQ-29 points the script at a remote server is its decision. One option: run it on the developer's machine with `DOCKER_HOST=ssh://…`, so the key never reaches the server.
-- **Proof:** `backup/table-counts.sql` gives exact row counts for every table in every schema. The test compares its output before the backup and after the restore.
+- **Proof:** `backup/table-counts.sql` gives exact row counts for every table in every schema. The test compares its output before the backup and after the restore. Every table must match exactly and none may be missing, except `pgboss.instance`, pg-boss's list of worker processes: each app start adds a row, and restore and rollback both restart the app, so that table may only gain rows (decided by the person on 2026-10-26).
 
 ### D9. Release and rollback by image tag (Decision record needed)
 - **CI:** `.github/workflows/image.yml` runs on every pull request and on `main`.
@@ -187,11 +187,11 @@ The runbook drafts (`runbooks/local-production-stack.md`, `runbooks/backup-and-r
     - Runs `backup.sh`. The new file starts with the `age` header (not `PGDMP`), and decrypted with the private key it is accepted by `pg_restore --list`.
     - A dummy dump named 31 days ago is removed, and one from yesterday is kept.
     - With `postgres` stopped, the script exits non-zero, stderr says `backup: FAILED`, and the folder gains no file.
-  - **`restore.container.test.ts`:** seeds rows, records `table-counts.sql`, and backs up. It then starts a second project (an empty volume), runs `restore.sh`, and checks the counts are equal and `/health` answers 200 through the proxy. A restore into the now non-empty database is refused.
+  - **`restore.container.test.ts`:** seeds rows, records `table-counts.sql`, and backs up. It then starts a second project (an empty volume), runs `restore.sh`, and checks the counts are equal (`pgboss.instance` may only gain rows, see D8) and `/health` answers 200 through the proxy. A restore into the now non-empty database is refused.
   - **`release.container.test.ts`:**
     - Tags `IMAGE` as the first tag, and builds a second, distinct image from it (a one-line Dockerfile adding a label, so the image ID differs).
     - Runs `deploy.sh` with the first tag, seeds rows, then `deploy.sh` with the second tag, and records the counts.
-    - Runs `deploy.sh --previous`. The app container's image ID is the first tag's, `/health` answers 200, and the counts are unchanged.
+    - Runs `deploy.sh --previous`. The app container's image ID is the first tag's, `/health` answers 200, and the counts are unchanged (`pgboss.instance` may only gain rows, see D8).
 
 ### D11. Deferred to MOQ-29
 The person's choices already made are carried to MOQ-29 and recorded there (its decision note replaces the hosting note planned here):

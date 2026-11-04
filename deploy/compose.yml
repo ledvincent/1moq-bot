@@ -1,0 +1,75 @@
+# Production stack: the app, PostgreSQL and the Caddy HTTPS proxy.
+# Run it only through `moq_compose` in deploy/lib.sh, which passes $MOQ_ETC/app.env and
+# $MOQ_ETC/release.env. Settings live outside the repository; nothing secret is written here.
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '5'
+
+services:
+  app:
+    image: ${APP_IMAGE:?APP_IMAGE is not set in release.env}:${IMAGE_TAG:?IMAGE_TAG is not set in release.env}
+    pull_policy: missing
+    env_file: ${MOQ_ETC:-/etc/1moq}/app.env
+    environment:
+      DATABASE_URL: postgres://moq:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in app.env}@postgres:5432/moq
+      PUBLIC_URL: https://${APP_DOMAIN:?APP_DOMAIN is not set in app.env}
+      # Production stays in dry-run until go-live (row 25). This wins over app.env:
+      # turning it off is a reviewed change to this file, never a settings edit.
+      DRY_RUN: 'true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    logging: *logging
+
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_USER: moq
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in app.env}
+      POSTGRES_DB: moq
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      # Over TCP: the image's first-start setup server listens on the socket only.
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U moq -d moq']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    logging: *logging
+
+  caddy:
+    image: caddy:2.11
+    ports:
+      - '${HTTP_PORT:-80}:80'
+      - '${HTTPS_PORT:-443}:443'
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN is not set in app.env}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is not set in app.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:

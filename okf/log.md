@@ -4,6 +4,16 @@
 * **Added**: [QC](/integrations/qc.md) - QC runs each PR locally, by /dirox-techlead:setup-project.
 * **Added**: [Solo project: review gates are warnings](/decisions/solo-project-review-gates.md) - the QC, code review and design gates do not block merges while one person works on the project.
 * **Updated**: owners written as GitHub usernames are now emails, and command names follow the Dirox kits 2.1.5, by /dirox-techlead:setup-project.
+## 2026-10-26
+* **Added**: [Settings and secrets live in files outside the repository, one compose command runs the stack](/decisions/MOQ-3-settings-and-secrets.md) - MOQ-3 decisions D1 and D5.
+* **Added**: [Caddy is the HTTPS proxy and the only service that publishes ports](/decisions/MOQ-3-caddy-https-proxy.md) - MOQ-3 decision D4.
+* **Added**: [Database backups are age-encrypted dumps, kept 30 days, readable only with a private key held outside the stack](/decisions/MOQ-3-encrypted-backups-with-age.md) - MOQ-3 decisions D7 and D8.
+* **Added**: [A release is an image tag, deployed and rolled back with deploy.sh, with migrations kept compatible with the previous release](/decisions/MOQ-3-release-by-image-tag.md) - MOQ-3 decision D9.
+* **Added**: [Run the production stack on the developer's machine](/runbooks/local-production-stack.md) - MOQ-3, followed by hand on 2026-10-26.
+* **Added**: [Back up and restore the production database](/runbooks/backup-and-restore.md) - MOQ-3.
+* **Added**: [Deploy a release and roll it back](/runbooks/deploy-and-rollback.md) - MOQ-3.
+* **Updated**: [Architecture overview](/architecture/overview.md) - deployment now describes the MOQ-3 stack; server parts point to MOQ-29.
+* **Updated**: [Tech stack](/architecture/tech-stack.md) - pinned production images (Node base, PostgreSQL 18.6, Caddy 2.11), age, the image CI workflow.
 
 ## 2026-10-25
 * **Added**: [Libraries and pinned versions for the scaffold](/decisions/MOQ-2-libraries-and-versions.md) - MOQ-2 decision D1.
