@@ -2,7 +2,7 @@
 type: Runbook
 title: Run the production stack on the developer's machine
 description: Install the tools, create the git-ignored .deploy-local settings, build and tag the image, start and stop the app, PostgreSQL and Caddy stack, and open it at https://localhost
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [deployment, local]
 ---

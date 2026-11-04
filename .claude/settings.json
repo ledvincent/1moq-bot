@@ -1,5 +1,5 @@
 {
-  "model": "sonnet",
+  "model": "opus",
   "effortLevel": "medium",
   "env": {
     "OPENSPEC_TELEMETRY": "0"
@@ -13,6 +13,8 @@
       "Bash(openspec validate:*)",
       "Bash(node .github/scripts/okf-validate.mjs:*)",
       "Bash(node .github/scripts/pr-check.mjs:*)",
+      "Bash(node .github/scripts/approval.mjs:*)",
+      "Bash(node .github/scripts/test-cases-check.mjs:*)",
       "Bash(node --version)",
       "Bash(git status:*)",
       "Bash(git diff:*)",

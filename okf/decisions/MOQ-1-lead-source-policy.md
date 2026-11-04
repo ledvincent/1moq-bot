@@ -2,7 +2,7 @@
 type: Decision
 title: Lead sources only through official or provider APIs, never the company's Instagram account
 description: Google Maps and Instagram data come only through official APIs (or a provider's API if the client chooses), the tool never signs in to or automates the company's Instagram account, and lead websites are read politely
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [sourcing, instagram, google-maps, kickoff]
 ---

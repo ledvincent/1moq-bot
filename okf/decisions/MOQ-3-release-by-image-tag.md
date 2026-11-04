@@ -2,7 +2,7 @@
 type: Decision
 title: A release is an image tag, deployed and rolled back with deploy.sh, with migrations kept compatible with the previous release
 description: Each release is a container image tag; deploy.sh backs up, switches the tag, waits for health and logs the result, --previous rolls back without touching the data, and every migration must keep working with the previous release's code
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [deployment, release]
 ---

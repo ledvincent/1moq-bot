@@ -2,7 +2,7 @@
 type: Architecture
 title: Architecture overview
 description: One always-on TypeScript web service on a small EU server serves the owner's UI and runs every background job (search, research, qualification, writing, sending, inbox), with PostgreSQL on the same server as its only store and job queue
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [architecture, kickoff]
 ---

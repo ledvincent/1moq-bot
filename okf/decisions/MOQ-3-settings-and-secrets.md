@@ -2,7 +2,7 @@
 type: Decision
 title: Settings and secrets live in files outside the repository, one compose command runs the stack
 description: The production settings (app.env, backup.env, release.env) live in a folder outside the repository - /etc/1moq on the server, a git-ignored .deploy-local/ locally - with placeholder-only templates in deploy/, and deploy/lib.sh builds the one compose command every script, test and person uses
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [deployment, secrets]
 ---

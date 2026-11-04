@@ -2,7 +2,7 @@
 type: Integration
 title: Anthropic Claude
 description: The AI that profiles leads, picks their client type and writes their emails, Claude Haiku 5.5 through the Anthropic API with the Batch API, prompt caching and a monthly spend cap; business facts and first names are sent, email addresses never
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [ai, kickoff]
 ---

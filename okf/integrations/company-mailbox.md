@@ -2,7 +2,7 @@
 type: Integration
 title: Company mailbox
 description: Sending every outreach email from the company mailbox and reading its inbox for replies, auto-replies and bounces; blocked by the separate mailbox and domain ticket, protocol chosen in row 16
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [sending, email, kickoff]
 ---

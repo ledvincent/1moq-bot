@@ -1,6 +1,7 @@
 # Dirox checks: the specs (OpenSpec) and the project knowledge (OKF) must be valid, and no PR
-# skips closing its change (OKF retro answered, finished change archived, test cases proven, QC approval
-# when the ticket needs QC). Added by /dirox-kit:setup-project. The OpenSpec version is pinned by the kit.
+# skips closing its change (OKF retro answered, finished change archived, test cases proven) or a
+# review gate (design for a big change, QC and a code review for any code).
+# Added by /dirox-techlead:setup-project. The OpenSpec version is pinned by the kit.
 name: Dirox checks
 
 on:
@@ -8,7 +9,7 @@ on:
     # edited: pr-checks reads the PR description, so it runs again when that changes.
     # ready_for_review: on a draft, pr-checks only warns; marking it ready makes them errors.
     types: [opened, synchronize, reopened, edited, ready_for_review]
-  # A QC reviewer's approval (or its dismissal) runs pr-checks again: it is the QC gate.
+  # An approval (or its dismissal) runs pr-checks again: the review gates live there.
   pull_request_review:
     types: [submitted, dismissed]
   push:
@@ -44,13 +45,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: OKF retro answered, finished changes archived and proven, QC approval
+      - name: OKF retro answered, finished changes archived and proven, review gates passed
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_DRAFT: ${{ github.event.pull_request.draft }}
           PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          GITHUB_TOKEN: ${{ github.token }}
+          # Solo project: no PR_NUMBER or GITHUB_TOKEN, so the review gates (QC, code review,
+          # design) are warnings, not errors (okf/decisions/solo-project-review-gates.md).
+          # /dirox-techlead:setup-project restores the kit's version: remove these again after it.
         run: node .github/scripts/pr-check.mjs

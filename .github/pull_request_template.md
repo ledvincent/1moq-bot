@@ -1,3 +1,4 @@
+
 ## Ticket
 Jira: <!-- PROJ-123 -->
 Size: <!-- trivial · normal · big -->
@@ -6,28 +7,44 @@ OpenSpec change: <!-- openspec/changes/<change>/ (or archive/<change>-<date>/ on
 ## What changed
 <!-- Two or three lines. -->
 
+## How to test
+<!-- For QC, filled by /dirox-dev:implement when the PR is marked ready; CI warns when it is empty.
+     - Build: the preview URL, or the local commands (okf/integrations/qc.md)
+     - Test accounts and data: by name only, never passwords or keys
+     - Manual cases to run: from test-cases/<KEY>.md (a trivial change: the smoke test)
+     - What changed for the user, in two lines -->
+
+## Acceptance criteria
+<!-- Filled by /dirox-dev:close-change: each criterion of the proposal's coverage table, the scenarios that state it, and whether the verification proved them. Trivial change: "none (no behaviour change)". -->
+| # | Criterion | Scenarios | Proven |
+|---|---|---|---|
+
 ## Scenarios and tests
 <!-- One row per spec scenario. Trivial change: the tests that cover it. -->
 | Requirement | Scenario | Test |
 |---|---|---|
 
 ## Test cases
-<!-- From test-cases/<KEY>.md and the verification. First line: "QC: required" or "QC: none".
-     One row per case; a manual case shows "QC" as its test. With QC required, CI waits for a QC reviewer's approval. -->
+<!-- From test-cases/<KEY>.md and the verification. One row per case; a manual case shows "QC" as its test.
+     CI waits for a QC reviewer's approval on every PR that changes code. -->
 | Case | Title | Proof | Test | Result |
 |---|---|---|---|---|
 
+## Tests run
+<!-- Filled by /dirox-dev:close-change: every test command (unit, API, end-to-end) run on the final code with the base branch in, with its counts, and the unit tests that cover the changed logic. -->
+
 ## Knowledge (okf/)
-<!-- The okf/ files added, updated or deprecated, or "No OKF change: <reason>". /dirox-kit:close-change fills it; CI fails when it is empty.
+<!-- The okf/ files added, updated or deprecated, or "No OKF change: <reason>". /dirox-dev:close-change fills it; CI fails when it is empty.
      A decision marked "Decision record needed" that is not recorded: one "No decision record: <decision> - <reason>" line. -->
 
 ## Model use
-<!-- Filled by /dirox-kit:close-change: each agent run from openspec/changes/<change>/model-use.md (model, effort, escalations), then the tokens measured on this ticket's branches. -->
+<!-- Filled by /dirox-dev:close-change: each agent run from openspec/changes/<change>/model-use.md (model, effort, escalations), then the tokens measured on this ticket's branches. -->
 
 ## Checklist
-- [ ] Big change only: proposal PR merged before code, BA and Architect approved
+- [ ] Big change only: a design reviewer approved the proposal before any code
 - [ ] Every scenario has a test whose name contains the scenario name
-- [ ] `/dirox-kit:verify` has no blocking findings (not needed for trivial)
+- [ ] The changed logic has unit tests, and every test suite passes
+- [ ] `/dirox-qc:verify` has no blocking findings (not needed for trivial)
 - [ ] OKF retro done, and the Dirox CI checks pass (`specs-and-knowledge`, `pr-checks`)
 - [ ] OpenSpec change archived (not needed for trivial)
 

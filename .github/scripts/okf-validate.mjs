@@ -1,19 +1,24 @@
 #!/usr/bin/env node
 // okf-validate.mjs: checks an OKF v0.2 bundle and generates its index.md files.
-// Part of dirox-kit 1.13.0. /dirox-kit:setup-project copies it into projects as
+// Part of dirox-core. /dirox-techlead:setup-project copies it into projects as
 // .github/scripts/okf-validate.mjs and replaces it on later runs: do not edit the copy.
 // No dependencies: Node 20 or later.
 //
-// Usage: node okf-validate.mjs [bundle-dir] [--write] [--json]
+// Usage: node okf-validate.mjs [bundle-dir] [--write] [--json] [--root full|folders]
 //   bundle-dir  defaults to "okf"
 //   --write     regenerate every index.md first, then check
 //   --json      print the results as JSON
+//   --root      the root index's layout, kept in its frontmatter (root_layout) so every later run,
+//               CI's included, writes the same root: "full" (the default) lists every concept
+//               under its folder's heading; "folders" lists the root's own concepts, then each
+//               folder with its count, like a folder index
 // Exit code: 0 = no errors (warnings allowed), 1 = errors, 2 = bad usage.
 //
 // Errors: the OKF conformance rules (frontmatter, non-empty `type`, reserved index.md and
 // log.md structures) plus two Dirox rules: every concept has an `owner`, and every index.md
 // matches what this script generates. Warnings: broken links (OKF readers must tolerate
-// them), missing title or description, unknown status, passed stale_after, and two decisions
+// them), missing title or description, an owner or a "human:" verifier that is not an email
+// (since 2.1.3; a GitHub username from an older kit), unknown status, passed stale_after, and two decisions
 // sharing a number (NNN-*.md, from two PRs merged at once; new decisions are named after
 // their ticket instead).
 
@@ -27,12 +32,17 @@ const SECTION_TITLES = {
   integrations: "Integrations", runbooks: "Runbooks",
 };
 
+const ROOT_LAYOUTS = ["full", "folders"];
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const args = process.argv.slice(2);
-const flags = new Set(args.filter((a) => a.startsWith("--")));
+const rootAt = args.indexOf("--root");
+const rootFlag = rootAt >= 0 ? args[rootAt + 1] : null;
+const rest = rootAt >= 0 ? args.filter((a, i) => i !== rootAt && i !== rootAt + 1) : args;
+const flags = new Set(rest.filter((a) => a.startsWith("--")));
 const unknown = [...flags].filter((f) => !["--write", "--json"].includes(f));
-const positional = args.filter((a) => !a.startsWith("--"));
-if (unknown.length || positional.length > 1) {
-  console.error("Usage: node okf-validate.mjs [bundle-dir] [--write] [--json]");
+const positional = rest.filter((a) => !a.startsWith("--"));
+if (unknown.length || positional.length > 1 || (rootAt >= 0 && !ROOT_LAYOUTS.includes(rootFlag))) {
+  console.error("Usage: node okf-validate.mjs [bundle-dir] [--write] [--json] [--root full|folders]");
   process.exit(2);
 }
 const bundle = path.resolve(positional[0] || "okf");
@@ -126,12 +136,23 @@ function parseScalar(raw) {
   }
   const value = s.replace(/\s+#.*$/, "").trim();
   if (value.startsWith("[") || value.startsWith("{")) {
-    let depth = 0, quote = null;
-    for (const ch of value) {
-      if (quote) { if (ch === quote) quote = null; continue; }
-      if (ch === '"' || ch === "'") quote = ch;
-      else if (ch === "[" || ch === "{") depth++;
-      else if (ch === "]" || ch === "}") depth--;
+    // A quote opens only where an item or a value starts (after "[", "{", "," or ": "): an
+    // apostrophe inside a plain item ([Banqup CFO, Vincent's term]) is just a character.
+    let depth = 0, quote = null, start = true;
+    for (let i = 0; i < value.length; i++) {
+      const ch = value[i];
+      if (quote) {
+        if (quote === '"' && ch === "\\") i++;
+        else if (ch === quote && quote === "'" && value[i + 1] === "'") i++;
+        else if (ch === quote) quote = null;
+        continue;
+      }
+      if (ch === " " || ch === "\t") continue;
+      if ((ch === '"' || ch === "'") && start) { quote = ch; start = false; continue; }
+      if (ch === "[" || ch === "{") { depth++; start = true; }
+      else if (ch === "]" || ch === "}") { depth--; start = false; }
+      else if (ch === "," || (ch === ":" && /\s/.test(value[i + 1] || " "))) start = true;
+      else start = false;
     }
     if (depth !== 0 || quote) return { problem: "unclosed [ ] or { }" };
     return { value: { flow: value } };
@@ -177,6 +198,10 @@ function checkConcept(file) {
   const str = (k) => (typeof data[k] === "string" ? data[k].trim() : "");
   if (!str("type")) error(file, 'missing or empty "type"');
   if (!str("owner")) error(file, 'missing "owner" (Dirox rule: the person accountable for this concept)');
+  else if (!EMAIL.test(str("owner"))) warn(file, `owner "${str("owner")}" is not an email: write the person's email (their git user.email); /dirox-techlead:setup-project converts usernames`);
+  for (const m of yaml.matchAll(/human:([^\s"',}\]]+)/g)) {
+    if (!EMAIL.test(m[1])) warn(file, `verified by "human:${m[1]}": write "human:<email>"; /dirox-techlead:setup-project converts usernames`);
+  }
   if (!str("title")) warn(file, 'no "title" (the file name is used in the index)');
   if (!str("description")) warn(file, 'no "description" (its index line will be empty)');
   if (str("status") && !["draft", "stable", "deprecated"].includes(str("status"))) {
@@ -221,8 +246,11 @@ function checkIndex(file, isRoot) {
   if (!isRoot) return error(file, "index.md below the bundle root must not have frontmatter");
   const { data, problems } = parseYaml(yaml);
   problems.forEach((p) => error(file, `frontmatter is not valid YAML: ${p}`));
-  const extra = Object.keys(data).filter((k) => k !== "okf_version");
-  if (extra.length) error(file, `root index.md frontmatter may only hold okf_version (found: ${extra.join(", ")})`);
+  const extra = Object.keys(data).filter((k) => k !== "okf_version" && k !== "root_layout");
+  if (extra.length) error(file, `root index.md frontmatter may only hold okf_version and root_layout (found: ${extra.join(", ")})`);
+  if (data.root_layout !== undefined && !ROOT_LAYOUTS.includes(data.root_layout)) {
+    error(file, `root_layout "${data.root_layout}" must be ${ROOT_LAYOUTS.join(" or ")}`);
+  }
 }
 
 function checkLog(file) {
@@ -281,10 +309,20 @@ const sortDirs = (dirs) => [...dirs].sort((a, b) => {
 
 // Root index: one section per top-level folder listing every concept below it, so the
 // session-start hook gives Claude the whole map in one file.
+// The root index, in the bundle's layout: "full" lists every concept under its folder's heading;
+// "folders" lists the root's own concepts, then each folder with its count, like a folder index.
 function rootIndex(node) {
-  const out = ["---", `okf_version: "${OKF_VERSION}"`, "---", "# Project knowledge", ""];
+  const front = ["---", `okf_version: "${OKF_VERSION}"`, ...(rootLayout === "folders" ? ["root_layout: folders"] : []), "---"];
+  const out = [...front, "# Project knowledge", ""];
   ownConcepts(node).forEach((f) => out.push(entry(node.dir, f)));
   if (node.files.some((f) => path.basename(f) === "log.md")) out.push("* [Log](log.md) - what changed in this knowledge, newest first");
+  if (rootLayout === "folders") {
+    for (const d of sortDirs(node.dirs)) {
+      const n = allConcepts(d).length;
+      if (n) out.push(`* [${linkText(titleOf(path.basename(d.dir)))}](${urlOf(node.dir, d.dir, true)}) - ${n} concept${n === 1 ? "" : "s"}`);
+    }
+    return out.join("\n") + "\n";
+  }
   for (const d of sortDirs(node.dirs)) {
     const list = allConcepts(d);
     if (!list.length) continue;
@@ -318,6 +356,14 @@ function indexes(node, isRoot, list = []) {
 
 collect(tree);
 const write = flags.has("--write");
+// The root's layout: --root sets it; otherwise the one the root index declares; otherwise "full".
+let rootLayout = rootFlag;
+if (!rootLayout) {
+  const rootFile = path.join(bundle, "index.md");
+  const { yaml } = fs.existsSync(rootFile) ? splitFrontmatter(readText(rootFile)) : { yaml: null };
+  const declared = yaml ? parseYaml(yaml).data.root_layout : undefined;
+  rootLayout = ROOT_LAYOUTS.includes(declared) ? declared : "full";
+}
 let written = 0;
 for (const { file, content } of indexes(tree, true)) {
   const current = fs.existsSync(file) ? readText(file) : null;

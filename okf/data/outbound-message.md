@@ -2,7 +2,7 @@
 type: Data Entity
 title: outbound_message
 description: One planned or sent outreach email, one row per lead and step (unique), carrying its text, due day and send status - planned, sending, sent, cancelled, failed or unknown
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: draft
 tags: [data, sending, kickoff]
 ---

@@ -1,4 +1,5 @@
-# QC reviewers: the GitHub users whose approval lets a "qc: required" ticket's PR merge.
+# QC reviewers: the GitHub users whose approval passes the QC gate. Every PR that changes code needs
+# one, given after testing the PR's build, that still covers the code when the PR merges.
 # One GitHub username per line, without the @ (for example jane-qc). Lines starting with # are ignored.
-# The Dirox PR checks (.github/scripts/pr-check.mjs) read this file; /dirox-kit:close-change asks them to review.
+# The Dirox PR checks (.github/scripts/approval.mjs) read this file from the base branch.
 ledvincent

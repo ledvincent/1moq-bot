@@ -2,7 +2,7 @@
 type: Runbook
 title: Back up and restore the production database
 description: Create the age key pair and keep the private key apart, run the encrypted backup, restore a dump into an empty stack and compare the row counts of every table
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [deployment, backup]
 ---

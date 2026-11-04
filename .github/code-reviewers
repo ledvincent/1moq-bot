@@ -1,0 +1,5 @@
+# Code reviewers: the GitHub users whose approval passes the code review gate. Every PR that changes
+# code needs one from someone other than its author and QC's approver, that still covers the code.
+# One GitHub username per line, without the @ (for example jane-dev). Lines starting with # are ignored.
+# The Dirox PR checks (.github/scripts/approval.mjs) read this file from the base branch.
+ledvincent

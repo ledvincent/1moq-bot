@@ -2,7 +2,7 @@
 type: Decision
 title: "Personal data: EU hosting, minimal data, hashed do-not-contact list, retention"
 description: Leads' data is processed on legitimate interest, hosted in the EU, limited to business facts and contacts with their sources, deleted after retention periods, while opt-outs are kept for good as a keyed hash of the address
-owner: ledvincent
+owner: vincent.ledreau@dirox.net
 status: stable
 tags: [gdpr, compliance, kickoff]
 ---

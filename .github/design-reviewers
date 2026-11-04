@@ -1,0 +1,5 @@
+# Design reviewers (the BA, the Architect): the GitHub users whose approval passes the design gate.
+# A big change needs one on its draft PR, given on the proposal before any code is committed.
+# One GitHub username per line, without the @ (for example jane-ba). Lines starting with # are ignored.
+# The Dirox PR checks (.github/scripts/approval.mjs) read this file from the base branch.
+ledvincent

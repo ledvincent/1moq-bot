@@ -1,8 +1,8 @@
 ---
 type: Integration
 title: Jira
-description: How this project's Jira is set up - project key, where acceptance criteria live, issue types, the status for each stage, the dependency link type and the ticket labels; read by /dirox-kit:jira and the other commands
-owner: vincentld-dirox
+description: How this project's Jira is set up - project key, where acceptance criteria live, issue types, the status for each stage, the dependency link type and the ticket labels; read by /dirox-core:jira and the other commands
+owner: vincent.ledreau@dirox.net
 status: stable
 resource: https://dirox.atlassian.net/browse/MOQ
 tags: [jira]
