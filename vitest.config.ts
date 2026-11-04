@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 
 // Same local settings as `pnpm start` (TEST_DATABASE_URL); CI sets them in the environment.
 if (existsSync('.env')) process.loadEnvFile('.env');
@@ -18,6 +19,16 @@ export default defineConfig({
           environment: 'node',
           include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
           exclude: [...exclude, '**/*.int.test.ts'],
+        },
+      },
+      {
+        // The React pages, rendered in happy-dom (MOQ-30 design D7).
+        plugins: [react()],
+        test: {
+          name: 'web',
+          environment: 'happy-dom',
+          include: ['web/src/**/*.test.ts', 'web/src/**/*.test.tsx'],
+          exclude,
         },
       },
       {
