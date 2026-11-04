@@ -1,66 +1,56 @@
-Verified: 2026-11-03 at 0b6e504
+Verified: 2026-11-04 at 3e229a4
 
-Tests: pnpm test → not run in full. `pnpm` is not on PATH and Corepack fails ("Cannot find module …pnpm\12.15.0\bin\pnpm.cjs"), so I ran the script's own command, `node_modules/.bin/vitest run --project unit --project web --project integration`. It stopped at startup: TEST_DATABASE_URL is not set and no PostgreSQL is running, so the integration project could not start ("No test files found, exiting with code 1").
-Tests: pnpm test:unit (`vitest run --project unit --project web`) → 58/58 passed (0 failed, 0 skipped)
-Tests: pnpm test:container → not run (needs Docker and IMAGE; this change touches nothing in deploy/)
-OpenSpec: `openspec validate moq-30-owner-app-pages --strict` → "Change 'moq-30-owner-app-pages' is valid"
+Tests: `pnpm test` could not run as written: pnpm is not on PATH, and `corepack pnpm` fails because the pnpm 12.15.0 shim is missing. I ran the same projects with `npx vitest run --project unit --project web --project integration` → 74/74 passed (0 failed, 0 skipped), 15 test files.
+Tests: `pnpm test:container` → not run (it needs Docker, `age` and an `IMAGE`; this change touches nothing in `deploy/`).
+OpenSpec: the change is archived, so `openspec validate moq-30-owner-app-pages --strict` answers "Unknown item". The merged spec passes: `openspec validate platform --type spec --strict` → valid.
 
 | Requirement | Scenario | Proven by | OK? | Note |
 |---|---|---|---|---|
-| One process serves the UI and runs the jobs | Local start serves the UI shell | src/main.int.test.ts "Local start serves the UI shell: one start() runs…" | Not run | Integration test; it now also checks the bundle contains `Overview` (D8). It could not run here (no DB). Re-run with TEST_DATABASE_URL set. |
-| One menu reaches every page | Menu reaches every page | web/src/app/app.test.tsx "Menu reaches every page" | Yes | Checks the 8 labels, their hrefs and order, then clicks each item: address, h1, only that item has aria-current, and document.title. The lead page marking Leads is tested separately. |
-| Pages show sample data | Every page shows the sample data marker | web/src/pages/pages.test.tsx "Every page shows the sample data marker" | Yes | Covers the 8 pages and /leads/lead-01: the marker text is "Sample data" and main has content. The rule "no real business, person or address" is covered by sample.test.ts (.example websites, example.com addresses). |
-| Actions not connected yet change nothing | Unconnected action changes nothing | pages.test.tsx "Unconnected action changes nothing" | Yes | Goes through every entry of connected-by.ts and requires search, approve, sendNow, saveTemplate and saveLimits. Checks zero fetch/XHR calls, the address unchanged and the exact notice naming the ticket. |
-| Lead page from the list | Open a lead from the list | pages.test.tsx "Open a lead from the list" | Yes | Clicks a row link, then checks the address /leads/lead-07, the title, the status, facts with their source and the history. |
-| Page addresses open their page | Reload keeps the page | src/platform/http/app.test.ts "Reload keeps the page: …" and app.test.tsx "Reload keeps the page: mounting at each address…" | Yes | Server answers index.html for every page address, /leads/ and /leads/lead-01. The UI mounted at each address opens that page. |
-| Page addresses open their page | Unknown address shows Page not found | app.test.tsx "Unknown address shows Page not found" and app.test.ts "Unknown address shows Page not found: …" | Yes | Covers /to-do and /leads/lead-99: no marker, menu shown, no menu item marked, and the link back goes to `/`. |
-| Plain 404 outside the app's pages | Unknown API or unsubscribe address gets a plain 404 | app.test.ts "Unknown API or unsubscribe address gets a plain 404, and GET /health answers as before" | Yes | Covers /api, /api/nope (GET and POST), /u, /u/nope, and POST/PUT on page addresses: 404 as JSON, not the app's page. /health returns 200 {status:ok}. |
+| One process serves the UI and runs the jobs | Local start serves the UI shell | src/main.int.test.ts "Local start serves the UI shell: …" | Yes | Now also checks the bundle contains `Overview` (D8). Matches Proof 5.1. |
+| One menu reaches every page | Menu reaches every page | web/src/app/app.test.tsx "Menu reaches every page" | Yes | Checks the labels and links in order, clicks each, then checks the address, the h1, that only that item is marked, and the title. Separate test: a lead's page marks Leads. |
+| Pages show sample data | Every page shows the sample data marker | web/src/pages/pages.test.tsx "Every page shows the sample data marker" | Yes | Covers the 8 pages and /leads/lead-01. "No real data" is covered by sample.test.ts. |
+| Actions not connected yet change nothing | Unconnected action changes nothing | pages.test.tsx "Unconnected action changes nothing" | Yes | Goes through every entry of connected-by.ts: no fetch or XHR, address unchanged, exact notice text with the ticket. |
+| Lead page from the list | Open a lead from the list | pages.test.tsx "Open a lead from the list" | Yes | Checks the address, the name, the status, facts with their source, and history. |
+| Page addresses open their page | Reload keeps the page | src/platform/http/app.test.ts and web/src/app/app.test.tsx "Reload keeps the page…" | Yes | Server answers every page address, `/leads/` and a lead page with index.html; the UI opens the page when mounted at each address. |
+| Page addresses open their page | Unknown address shows Page not found | app.test.tsx and app.test.ts "Unknown address shows Page not found…" | Yes | Covers an unknown address and an unknown lead id; the back link goes to `/`; the server answers index.html. |
+| Plain 404 outside the app's pages | Unknown API or unsubscribe address gets a plain 404 | app.test.ts "Unknown API or unsubscribe address gets a plain 404, …" | Yes | `/api`, `/api/*`, `/u`, `/u/*`, POST and PUT elsewhere all get a JSON 404 without the app's HTML; /health still answers 200 `{status:'ok'}`. |
 
 Acceptance criteria:
 
 | # | Criterion | Scenarios | Proven |
 |---|---|---|---|
-| 1 | Menu reaches the 8 pages, current page marked | Menu reaches every page | Yes |
-| 2 | Every page shows sample data and the marker | Every page shows the sample data marker | Yes |
-| 3 | Unconnected action changes nothing and names its feature | Unconnected action changes nothing | Yes |
-| 4 | Lead page from the list with facts and sources, status, history | Open a lead from the list | Yes |
+| 1 | Menu reaches all eight pages, current page marked | Menu reaches every page | Yes |
+| 2 | Sample data and "Sample data" marker on every page | Every page shows the sample data marker | Yes |
+| 3 | Unconnected actions change nothing and name the ticket | Unconnected action changes nothing | Yes |
+| 4 | Lead page from the list with facts, sources, status and history | Open a lead from the list | Yes |
 | 5 | Reload or direct address opens the same page | Reload keeps the page | Yes |
-| 6 | Unknown address shows "Page not found" with a link to the Overview | Unknown address shows Page not found | Yes |
-| 7 | /api and /u get a plain 404, /health unchanged | Unknown API or unsubscribe address gets a plain 404 (also Local start serves the UI shell for the UI part) | Yes (unit); the integration scenario was not run |
+| 6 | Unknown address shows "Page not found" linking to the Overview | Unknown address shows Page not found | Yes |
+| 7 | Plain 404 under /api/ and /u/; /health unchanged | Unknown API or unsubscribe address gets a plain 404 | Yes |
 
 Unit tests:
 
 | File | Unit with logic | Unit test | OK? |
 |---|---|---|---|
-| src/platform/http/app.ts | isPageAddress and the not-found handler (method and prefix branches) | src/platform/http/app.test.ts (GET, HEAD, POST, PUT, /api, /apix, /u, /unsubscribe, query string, static files) | Yes |
+| src/platform/http/app.ts | not-found handler (GET/HEAD outside /api and /u get index.html, the rest a 404) | src/platform/http/app.test.ts | Yes |
 | web/src/app/routes.ts | matchRoute (home, page, trailing slash, lead id, not found) | web/src/app/routes.test.ts | Yes |
 | web/src/app/navigation.ts | usePathname, navigate, popstate | web/src/app/navigation.test.tsx | Yes |
-| web/src/app/link.tsx | plain click vs modified or middle click | web/src/app/navigation.test.tsx | Yes |
-| web/src/ui/not-connected-action.tsx | notice, preventDefault, clearing form | web/src/ui/not-connected-action.test.tsx | Yes |
-| web/src/App.tsx | page picker, menu aria-current, document.title, not found | web/src/app/app.test.tsx | Yes |
+| web/src/app/link.tsx | Link: plain left click vs modified or middle click | web/src/app/navigation.test.tsx | Yes |
+| web/src/app/connected-by.ts | notConnectedText | not-connected-action.test.tsx and pages.test.tsx (exact text) | Yes |
+| web/src/ui/not-connected-action.tsx | notice, preventDefault on submit, field cleared after use | web/src/ui/not-connected-action.test.tsx | Yes |
+| web/src/App.tsx | page picker, aria-current, document.title, not-found | web/src/app/app.test.tsx | Yes |
 | web/src/pages/leads-page.tsx | status filter | pages.test.tsx "Leads filters by status" | Yes |
-| web/src/pages/review-page.tsx | previous/next index | pages.test.tsx "Review moves through the waiting leads locally" | Yes (the ends of the list are not tested) |
-| web/src/pages/lead-page.tsx | unknown id → not found; time zone fallback | app.test.tsx (/leads/lead-99) | Yes |
-| web/src/pages/emails-page.tsx | "to contact by hand" filter, lead-name fallback | pages.test.tsx "Emails shows queued send times…" | Yes |
-| web/src/pages/overview-page.tsx | sending On/Paused text | pages.test.tsx "Overview figures link to their pages" | Yes (only the On case) |
-| web/src/sample/*.ts, connected-by.ts, ui/page-header, stat, table, sample-data-marker, styles.css | none needed: data, types and presentation only (sample data is checked by sample.test.ts) | — | Yes |
+| web/src/pages/review-page.tsx | previous / next lead | pages.test.tsx "Review moves through the waiting leads locally" | Yes |
+| web/src/pages/lead-page.tsx | unknown id shows not found | app.test.tsx (/leads/lead-99) | Yes |
+| web/src/sample/*.ts | none needed: static data and types (checked by sample.test.ts) | web/src/sample/sample.test.ts | Yes |
+| web/src/ui/page-header, sample-data-marker, stat, table; other pages | none needed: rendering only, covered by the scenario tests | — | Yes |
 
-Scope: no extra files; all the planned work is done. Unticked tasks: 4.7 (lint, typecheck, full `pnpm test`, then checking the style by eye in Chrome and Safari, to be noted in the PR). The local `main` branch is stale: it is at "Initial commit" 8ad6b27, so `git diff main...HEAD` lists the whole repo. I judged the scope from f6576a3..HEAD, which lists only the change's files.
+Scope: in line with the tasks; all tasks are ticked. The diff against main also includes files from the merged kit setup (#8) and the MOQ-4 proposal (#6): `.github/*`, `okf/*`, `openspec/changes/moq-4-owner-sign-in/*`. Those come from the merge of main. The OKF files that belong to this change (two decision records, `okf/architecture/ui-style.md`, overview and tech-stack updates) were planned for close-change.
 
 Blocking findings:
-- The integration suite (`pnpm test`) could not run here: no TEST_DATABASE_URL or PostgreSQL. So the scenario "Local start serves the UI shell" (src/main.int.test.ts, which now also checks `Overview` in the bundle) is not proven by this run. It must be run with a database before merge, and task 4.7's `pnpm test` must be confirmed then.
+- none
 
 Non-blocking findings:
-- Task 4.7 is unticked: lint, typecheck and the check by eye in the browser are not recorded yet. I did not run lint or typecheck, because they are outside the commands I am allowed to run.
-- Thin coverage: Review previous/next at the first and last lead, and Overview with sending "Paused", are not tested.
-- `pnpm` through Corepack is broken on this machine (pnpm 12.15.0 is not downloaded). This is an environment problem, not a problem in the code.
-- Local `main` is stale; update it before computing the PR diff.
-- No secrets, debug leftovers, skipped tests or new TODOs in the diff. The only `console.log(1)` is the content of a static test file in app.test.ts.
-
-## Follow-up run (main session, 2026-11-03, at 0b6e504)
-
-The blocking finding was environmental (no database). With the project's Docker Compose PostgreSQL running and `TEST_DATABASE_URL` set:
-- `pnpm test` (unit, web, integration): 15 files, 74/74 passed, including "Local start serves the UI shell".
-- `pnpm lint`: passed (ESLint and Prettier). `pnpm typecheck`: passed.
-
-No blocking finding left. Task 4.7's check by eye in Chrome and Safari stays for a person, noted in the PR.
+- `pnpm` is not runnable in this environment (corepack shim missing), so the tests ran through `npx vitest` with the same projects. `pnpm test:container` was not run.
+- The `openspec validate <name>` step does not apply after archiving; only the merged `platform` spec was validated.
+- Accepted risk from design.md: a missing `/assets/*` file gets index.html instead of a 404.
+- The only `console.log` in the diff is fixture content in `src/platform/http/app.test.ts`, not debug output. No TODOs and no skipped tests were added.
