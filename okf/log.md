@@ -1,6 +1,7 @@
 # Knowledge log
 
 ## 2026-11-12
+* **Updated**: [Jira](/integrations/jira.md) - brought to the kit 3.2.0 template: dropped the QC rows and the proposal stage, `src:intent`, `large`, the Fields section.
 * **Added**: [Review gates block merges again](/decisions/dirox-kit-3-2-0-review-gates-block-merges.md) - the project now has a second account for QC and review, so the gates block merges.
 * **Deprecated**: [Solo project: review gates are warnings](/decisions/solo-project-review-gates.md) - superseded by the decision above.
 
