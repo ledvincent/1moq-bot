@@ -1,20 +1,22 @@
 #!/usr/bin/env node
 // approval.mjs: the review gates of a pull request (design, qc, code) and what counts as code.
-// Used by pr-check.mjs in CI, and locally by /dirox-dev:implement, /dirox-dev:close-change,
-// /dirox-core:next and /dirox-techlead:review-pr. Part of dirox-core.
-// /dirox-techlead:setup-project copies it into projects as .github/scripts/approval.mjs, next to
+// Used by pr-check.mjs in CI, and locally by /dirox-ticket:build-ticket, /dirox-ticket:finish-ticket,
+// /dirox-core:show-next-step and /dirox-ticket:review-pr. Part of dirox-core.
+// /dirox-project:set-up-repo copies it into projects as .github/scripts/approval.mjs, next to
 // pr-check.mjs, which imports it: do not edit the copy.
 // No dependencies: Node 20 or later, and git with the PR's history (CI: checkout with fetch-depth 0).
 //
 // Code is every file outside NOT_CODE below: behaviour (openspec/), knowledge (okf/), QC's test
-// cases (test-cases/), what OpenSpec generates and the files setup-project writes, plus what the
-// project lists in .github/not-code (read from the base; same format: one path or folder per line,
-// "*" for one path segment, "#" comments). Markdown is code.
+// cases (test-cases/) and QC's automated tests (test-automation/, since 3.1.0: QC owns them and its
+// approval covers them), the usage log (.dirox/), what OpenSpec generates and the files set-up-repo
+// writes, plus what the project lists in .github/not-code (read from the base; same format: one path
+// or folder per line, "*" for one path segment, "#" comments). Markdown is code.
 //
 // The gates. Each is passed by an approval, as the PR's reviews give it:
-//   design  a big change ("Size: big" in its proposal.md) whose proposal is not on the base yet (a
-//           change approved through a 2.0 proposal PR passes), the kickoff aside: an approval from
-//           someone in .github/design-reviewers, not the PR's author, given on a commit A with no code
+//   design  a large change ("Size: large" in its proposal.md, or "Size: big" before 3.0.0) whose
+//           proposal is not on the base yet (a change approved through a 2.0 proposal PR passes),
+//           plan-project's <key>-kickoff change aside: an approval from someone in
+//           .github/design-reviewers, not the PR's author, given on a commit A with no code
 //           committed before it (git log --no-merges merge-base(base, A)..A touches no code file).
 //           Code committed before any design approval means this branch can never pass.
 //   qc      a PR that changes code: the latest review of someone in .github/qc-reviewers is an
@@ -25,13 +27,23 @@
 //   git diff -U0 merge-base(base, A)..A   versus   git diff -U0 merge-base(base, H)..H,
 // compared file by file with `git patch-id --stable` (line numbers and whitespace ignored). Merging
 // the base in, archiving the change and writing knowledge keep an approval; changing the code does not.
-// One person passes at most one gate on a PR, so QC and the code review come from two people.
+// One person passes at most one gate on a PR, so QC and the code review come from two people,
+// except on a small team, where .github/code-reviewers says who else reads code:
+//   the tester reviews the code too: when .github/code-reviewers names nobody but the PR's author
+//     and the QC approver, that approver's QC approval passes the code review gate as well;
+//   self-review: when it names nobody but the author, a line "Self-reviewed: <reason>" in the PR
+//     description passes the code review gate, never on a large change, and only with the pre-review
+//     comment /dirox-ticket:review-pr posts on the PR (first line "Automated pre-review by Claude
+//     (dirox-ticket:review-pr).", last line "Commit: <full sha>") whose commit still covers the code,
+//     as an approval would. The line is not an approval: QC still approves.
 // The reviewer files are read from the base, so a PR cannot add its own reviewers.
 //
 // CLI:
-//   gh pr view <n> --json reviews,author | node approval.mjs --gate design|qc|code|all --base <ref> [--head HEAD] [--key PROJ-123]
+//   gh pr view <n> --json reviews,author,body,comments | node approval.mjs --gate design|qc|code|all --base <ref> [--head HEAD] [--key PROJ-123]
 //     prints a JSON verdict ({gate, needed, ok, reason, by, at, changed, firstCode, message}; for
 //     "all", {ok, gates: [...]}). Exit code: 0 = passed or not needed, 1 = not passed, 2 = bad usage.
+//     `--json reviews,author` (before 3.0.0) or a bare array of reviews still works: without the
+//     description and the comments, a self-review is not seen.
 //   node approval.mjs --code-files --base <ref> [--head HEAD]
 //     prints the PR's code files as a JSON array ([] = the PR changes no code). Exit code 0.
 
@@ -42,7 +54,7 @@ import { fileURLToPath } from "node:url";
 
 // Not code: folders end with "/", files are exact paths, a "*" stands for one path segment.
 export const NOT_CODE = [
-  "openspec/", "okf/", "test-cases/",
+  "openspec/", "okf/", "test-cases/", "test-automation/", ".dirox/",
   ".claude/CLAUDE.md", ".claude/settings.json", ".claude/skills/openspec-*/", ".claude/commands/opsx/",
   ".github/workflows/dirox-checks.yml", ".github/workflows/testmo.yml",
   ".github/scripts/approval.mjs", ".github/scripts/okf-validate.mjs", ".github/scripts/pr-check.mjs",
@@ -104,6 +116,33 @@ export function normalizeReviews(reviews) {
   }).filter((r) => r.who && r.state !== "COMMENTED" && r.state !== "PENDING");
 }
 
+// The PR's comments from the REST API ({user:{login}, body}) or from `gh pr view --json comments`
+// ({author:{login}, body}), oldest first; null when they were not given.
+export function normalizeComments(comments) {
+  if (!Array.isArray(comments)) return null;
+  return comments.map((c) => ({ login: c.user?.login || c.author?.login || "", body: String(c.body || "") }));
+}
+
+// The pre-review /dirox-ticket:review-pr posts: its first and last lines, and the commit it read.
+export const PRE_REVIEW = "Automated pre-review by Claude (dirox-ticket:review-pr).";
+export function preReview(comments) {
+  let found = null;
+  for (const c of comments || []) {
+    const body = c.body.replace(/\r\n?/g, "\n").trim();
+    const sha = (body.match(/(?:^|\n)\s*Commit:\s*`?([0-9a-f]{40})`?\s*$/i) || [])[1];
+    if (body.startsWith(PRE_REVIEW) && sha) found = { login: c.login, commit: sha.toLowerCase() };
+  }
+  return found;
+}
+
+// The "Self-reviewed: <reason>" line of a PR description: {reason} ("" when none is given), or null.
+export function selfReview(body) {
+  const lines = String(body || "").replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?-->/g, "").split("\n");
+  const l = lines.find((x) => /^\s*[-*]?\s*\**Self-reviewed\**\s*:/i.test(x));
+  if (!l) return null;
+  return { reason: l.replace(/^\s*[-*]?\s*\**Self-reviewed\**\s*:\s*\**/i, "").replace(/<reason>/i, "").trim() };
+}
+
 // Code files touched by each commit of a range, oldest first: [{sha, files}].
 function codeCommits(range, isCodeFile) {
   const out = [];
@@ -154,6 +193,9 @@ export function findChange(key, commit = "HEAD") {
   return { name, path: hit, size: ((text.match(/^Size:\s*(\w+)/im) || [])[1] || "").toLowerCase() };
 }
 
+// "large", or "big" before 3.0.0.
+export const isLarge = (size) => ["large", "big"].includes(String(size || "").toLowerCase());
+
 // The design files of a ticket's change (proposal.md, design.md, the spec deltas) that differ between
 // two commits, relative to the change folder; the change may have been archived in between.
 export function designChangedSince(key, approved, head = "HEAD") {
@@ -177,13 +219,13 @@ function facts({ base, head, key }) {
   const code = codeFiles(base, head);
   const change = findChange(key, head);
   let design = false, designWhy = "";
-  if (change && change.size === "big" && !change.name.endsWith("-kickoff")) {
+  if (change && isLarge(change.size) && !change.name.endsWith("-kickoff")) {
     const onBase = tryGit("cat-file", "-e", `${base}:openspec/changes/${change.name}/proposal.md`) !== null
       || (tryGit("ls-tree", "--name-only", base, "openspec/changes/archive/") || "").split("\n").some((p) => p.split("/").pop().startsWith(`${change.name}-`));
     if (onBase) designWhy = "approved through its proposal PR, already on the base";
     else design = true;
   }
-  return { code, change, design, designWhy };
+  return { code, change, design, designWhy, large: Boolean(change && isLarge(change.size)) };
 }
 
 // Candidates for one gate: the approvals that pass it, by person.
@@ -242,11 +284,13 @@ function assign(needs) {
 }
 
 // The verdict of every gate: [{gate, needed, ok, reason, by, at, changed, firstCode, reviewers}].
-export function checkGates({ reviews, author, base, head = "HEAD", key, gates = GATES }) {
+// body and comments (the PR's description and comments) are only read for a self-review.
+export function checkGates({ reviews, author, base, head = "HEAD", key, gates = GATES, body, comments }) {
   const r = normalizeReviews(reviews);
   const f = facts({ base, head, key });
   const out = {};
   const needs = [];
+  const passed = {};
   for (const gate of GATES) {
     const reviewers = readReviewers(gate, base);
     const needed = gate === "design" ? f.design : f.code.length > 0;
@@ -263,6 +307,7 @@ export function checkGates({ reviews, author, base, head = "HEAD", key, gates = 
     const v = out[gate];
     const c = v.candidates;
     delete v.candidates;
+    passed[gate] = pass;
     if (picks[i]) return Object.assign(v, { ok: true, reason: "covered", by: picks[i].map((p) => p.login).join(", "), at: picks[i][0].commit });
     if (pass.length) {
       const other = GATES.find((g) => g !== gate && out[g].ok && pass.some((p) => out[g].by?.toLowerCase().split(", ").includes(p.who)));
@@ -281,7 +326,37 @@ export function checkGates({ reviews, author, base, head = "HEAD", key, gates = 
     if (best) return Object.assign(v, { reason: best.reason, by: best.login, at: best.commit, changed: best.changed });
     return Object.assign(v, { reason: "not-approved" });
   });
+  smallTeam(out, { passed, author, base, head, f, body, comments });
   return gates.map((g) => out[g]);
+}
+
+// The code review gate on a small team, when no other approval passed it: the tester's approval,
+// or a self-review (see the header).
+function smallTeam(out, { passed, author, base, head, f, body, comments }) {
+  const v = out.code;
+  if (!v.needed || v.ok || !v.reviewers.length) return;
+  const me = (author || "").toLowerCase();
+  const others = [...new Set(v.reviewers.map((x) => x.toLowerCase()))].filter((x) => x !== me);
+  // The tester reviews the code too: code-reviewers names the author and the QC approver only.
+  const design = out.design.ok && out.design.by ? out.design.by.toLowerCase().split(", ") : [];
+  const qcPass = (passed.qc || []).filter((p) => !design.includes(p.who))
+    .sort((a, b) => (b.login === out.qc.by) - (a.login === out.qc.by));
+  const tester = qcPass.find((p) => others.length === 1 && others[0] === p.who);
+  if (tester) return Object.assign(v, { ok: true, reason: "covered-by-qc", by: tester.login, at: tester.commit, changed: [], other: undefined });
+  const self = selfReview(body);
+  if (!self) return;
+  if (others.length) return Object.assign(v, { selfReviewIgnored: v.reviewers.filter((x) => x.toLowerCase() !== me) });
+  const fail = (reason, extra = {}) => Object.assign(v, { reason, by: author || "", at: "", changed: [], other: undefined, ...extra });
+  if (!self.reason) return fail("self-review-no-reason");
+  if (f.large) return fail("self-review-large");
+  const list = normalizeComments(comments);
+  if (list === null) return fail("self-review-no-comments");
+  const pre = preReview(list);
+  if (!pre) return fail("self-review-no-pre-review");
+  const changed = codeChangedSince(base, pre.commit, head);
+  if (changed === null) return fail("self-review-commit-missing", { at: pre.commit });
+  if (changed.length) return fail("self-review-code-changed", { at: pre.commit, changed });
+  return Object.assign(v, { ok: true, reason: "self-reviewed", by: author || "", at: pre.commit, changed: [], other: undefined, why: self.reason });
 }
 
 const short = (s) => (s || "").slice(0, 7);
@@ -293,31 +368,42 @@ export function explain(v) {
   const names = v.reviewers?.length ? v.reviewers.join(", ") : "";
   const file = `.github/${v.gate}-reviewers`;
   if (v.ok && v.reason === "not-needed") {
-    if (v.gate === "design") return v.why ? `Design gate: ${key} was ${v.why}.` : `Design gate: not needed (${key} is not a big change).`;
+    if (v.gate === "design") return v.why ? `Design gate: ${key} was ${v.why}.` : `Design gate: not needed (${key} is not a large change).`;
     return `${v.gate === "qc" ? "QC" : "Code review"} gate: not needed (the PR changes no code).`;
   }
+  if (v.ok && v.reason === "covered-by-qc") return `Code review gate: passed by ${v.by}'s approval at ${short(v.at)}, which passes the QC gate too: .github/code-reviewers names nobody else but the PR's author.`;
+  if (v.ok && v.reason === "self-reviewed") return `Code review gate: self-reviewed by ${v.by} ("${v.why}"), with review-pr's pre-review at ${short(v.at)} still covering the code.`;
   if (v.ok) return `${v.gate === "design" ? "Design" : v.gate === "qc" ? "QC" : "Code review"} gate: passed by ${v.by}'s approval at ${short(v.at)}.`;
   if (v.reason === "no-reviewers") {
-    if (v.gate === "design") return `${key} is a big change, but ${file} lists nobody: add the BA's and the Architect's GitHub usernames.`;
+    if (v.gate === "design") return `${key} is a large change, but ${file} lists nobody: add the BA's and the Architect's GitHub usernames.`;
     return `${file} lists nobody, and every PR that changes code needs ${v.gate === "qc" ? "a QC approval" : "a code review"}: add their GitHub usernames.`;
   }
+  // Self-review (the code review gate on a small team).
+  const again = "Run /dirox-ticket:review-pr on this PR, fix its findings and post its comment; the \"Self-reviewed:\" line then counts.";
+  if (v.reason === "self-review-no-reason") return 'The "Self-reviewed:" line gives no reason: write "Self-reviewed: <why nobody else can review the code>".';
+  if (v.reason === "self-review-large") return `${key} is a large change: no self-review on a large ticket, ask a reviewer from another project (added to .github/code-reviewers on the base, then they approve this PR).`;
+  if (v.reason === "self-review-no-comments") return `The PR description says "Self-reviewed:", but the PR's comments were not read, so review-pr's pre-review could not be checked (gh pr view <n> --json reviews,author,body,comments).`;
+  if (v.reason === "self-review-no-pre-review") return `The PR description says "Self-reviewed:", but review-pr's pre-review is not on the PR. ${again}`;
+  if (v.reason === "self-review-commit-missing") return `review-pr's pre-review names commit ${short(v.at)}, which is no longer in the branch's history (force-pushed?). ${again}`;
+  if (v.reason === "self-review-code-changed") return `The code changed since review-pr's pre-review (at ${short(v.at)}): ${list(v.changed)}. ${again}`;
+  const ignored = v.selfReviewIgnored?.length ? ` The "Self-reviewed:" line does not count: .github/code-reviewers names someone other than the author (${v.selfReviewIgnored.join(", ")}).` : "";
   if (v.reason === "same-person") {
-    return `${v.by}'s approval already passes the ${v.other === "qc" ? "QC" : v.other} gate, and one person passes one gate per PR: ${v.gate === "code" ? "the code review" : `the ${v.gate} gate`} needs someone else from ${file} (${names}).`;
+    return `${v.by}'s approval already passes the ${v.other === "qc" ? "QC" : v.other} gate, and one person passes one gate per PR: ${v.gate === "code" ? "the code review" : `the ${v.gate} gate`} needs someone else from ${file} (${names}).${ignored}`;
   }
   if (v.gate === "design") {
     if (v.reason === "code-before-approval") {
-      return `${key} is a big change, and code was committed (${short(v.firstCode)}) before a design reviewer approved: this branch can never pass the design gate. Start a new branch from the base with only the change folder and the test cases, open a draft PR for the design reviewers (${names}), and build there once they approve.`;
+      return `${key} is a large change, and code was committed (${short(v.firstCode)}) before a design reviewer approved: this branch can never pass the design gate. Start a new branch from the base with only the change folder and the test cases, open a draft PR for the design reviewers (${names}), and build there once they approve.`;
     }
     if (v.reason === "commit-missing") return `${v.by} approved the design at ${short(v.at)}, which is no longer in the branch's history (force-pushed?). A design reviewer approves again.`;
-    return `Waiting for design approval: ${key} is a big change, so a design reviewer (${names}) approves the proposal on the draft PR before any code is committed.`;
+    return `Waiting for design approval: ${key} is a large change, so a design reviewer (${names}) approves the proposal on the draft PR before any code is committed.`;
   }
   const who = v.gate === "qc" ? "QC" : "the code reviewer";
-  if (v.reason === "commit-missing") return `${v.by} approved commit ${short(v.at)}, which is no longer in the branch's history (force-pushed?). ${v.gate === "qc" ? "QC looks" : "A code reviewer looks"} at the PR again and re-approves.`;
+  if (v.reason === "commit-missing") return `${v.by} approved commit ${short(v.at)}, which is no longer in the branch's history (force-pushed?). ${v.gate === "qc" ? "QC looks" : "A code reviewer looks"} at the PR again and re-approves.${ignored}`;
   if (v.reason === "code-changed") {
-    return `The code changed since ${v.gate === "qc" ? "QC" : "the code review"} approved (${v.by}, at ${short(v.at)}): ${list(v.changed)}. ${v.gate === "qc" ? "QC looks at that diff and re-approves; they re-run cases only if behaviour they tested changed." : `${who[0].toUpperCase()}${who.slice(1)} looks at that diff and re-approves.`}`;
+    return `The code changed since ${v.gate === "qc" ? "QC" : "the code review"} approved (${v.by}, at ${short(v.at)}): ${list(v.changed)}. ${v.gate === "qc" ? "QC looks at that diff and re-approves; they re-run cases only if behaviour they tested changed." : `${who[0].toUpperCase()}${who.slice(1)} looks at that diff and re-approves.`}${ignored}`;
   }
   if (v.gate === "qc") return `Waiting for QC: a QC reviewer (${names}) tests the PR's build and approves it.`;
-  return `Waiting for a code review: a code reviewer (${names}), not the PR's author, approves the PR.`;
+  return `Waiting for a code review: a code reviewer (${names}), not the PR's author, approves the PR.${ignored}`;
 }
 
 // CLI
@@ -325,7 +411,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const args = process.argv.slice(2);
   const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
   const usage = () => {
-    console.error("usage: gh pr view <n> --json reviews,author | approval.mjs --gate design|qc|code|all --base <base ref> [--head HEAD] [--key PROJ-123]\n       approval.mjs --code-files --base <base ref> [--head HEAD]");
+    console.error("usage: gh pr view <n> --json reviews,author,body,comments | approval.mjs --gate design|qc|code|all --base <base ref> [--head HEAD] [--key PROJ-123]\n       approval.mjs --code-files --base <base ref> [--head HEAD]");
     process.exit(2);
   };
   const base = opt("base");
@@ -341,10 +427,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   let input = "";
   try { input = fs.readFileSync(0, "utf8"); } catch { /* no stdin */ }
   let pr;
-  try { const j = JSON.parse(input || "{}"); pr = Array.isArray(j) ? { reviews: j } : j; } catch { console.error("approval: stdin is not the JSON of `gh pr view --json reviews,author`"); process.exit(2); }
+  try { const j = JSON.parse(input || "{}"); pr = Array.isArray(j) ? { reviews: j } : j; } catch { console.error("approval: stdin is not the JSON of `gh pr view --json reviews,author,body,comments`"); process.exit(2); }
   const branch = (tryGit("branch", "--show-current") || "").trim();
   const key = (opt("key") || ((branch.match(/[A-Z][A-Z0-9]*-\d+/i) || [""])[0])).toUpperCase();
-  const verdicts = checkGates({ reviews: pr.reviews, author: pr.author?.login, base, head, key, gates: gate === "all" ? GATES : [gate] })
+  const verdicts = checkGates({ reviews: pr.reviews, author: pr.author?.login, base, head, key, gates: gate === "all" ? GATES : [gate], body: pr.body, comments: pr.comments })
     .map((v) => ({ gate: v.gate, needed: v.needed, ok: v.ok, reason: v.reason, by: v.by || "", at: v.at || "", changed: v.changed, firstCode: v.firstCode || "", reviewers: v.reviewers, message: explain(v) }));
   const ok = verdicts.every((v) => v.ok);
   console.log(JSON.stringify(gate === "all" ? { ok, gates: verdicts } : verdicts[0], null, 2));

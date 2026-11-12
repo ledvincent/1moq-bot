@@ -3,10 +3,12 @@ type: Decision
 title: "Solo project: review gates are warnings"
 description: While one person builds 1moq-bot, the Dirox PR check reports the QC, code review and design gates as warnings instead of blocking the merge; the other Dirox checks still block
 owner: vincent.ledreau@dirox.net
-status: stable
+status: deprecated
 tags: [workflow, ci]
 ---
 # Solo project: review gates are warnings
+
+Superseded by [Review gates block merges again](/decisions/dirox-kit-3-2-0-review-gates-block-merges.md).
 
 Date: 2026-11-03 · Jira: none (kit setup, `chore/dirox-kit-2.1.5`)
 

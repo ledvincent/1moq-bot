@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // okf-validate.mjs: checks an OKF v0.2 bundle and generates its index.md files.
-// Part of dirox-core. /dirox-techlead:setup-project copies it into projects as
+// Part of dirox-core. /dirox-project:set-up-repo copies it into projects as
 // .github/scripts/okf-validate.mjs and replaces it on later runs: do not edit the copy.
 // No dependencies: Node 20 or later.
 //
@@ -15,8 +15,9 @@
 // Exit code: 0 = no errors (warnings allowed), 1 = errors, 2 = bad usage.
 //
 // Errors: the OKF conformance rules (frontmatter, non-empty `type`, reserved index.md and
-// log.md structures) plus two Dirox rules: every concept has an `owner`, and every index.md
-// matches what this script generates. Warnings: broken links (OKF readers must tolerate
+// log.md structures) plus three Dirox rules: every concept has an `owner`, the optional
+// `collaborators` (since 3.0.0: everyone who changed a concept they do not own) is a list of
+// emails, and every index.md matches what this script generates. Warnings: broken links (OKF readers must tolerate
 // them), missing title or description, an owner or a "human:" verifier that is not an email
 // (since 2.1.3; a GitHub username from an older kit), unknown status, passed stale_after, and two decisions
 // sharing a number (NNN-*.md, from two PRs merged at once; new decisions are named after
@@ -162,6 +163,43 @@ function parseScalar(raw) {
   return { value };
 }
 
+// The items of a YAML list of plain or quoted scalars, flow ([a, b]) or block ("- a" lines); [] for
+// an empty value; null when the value is not such a list (a single value, a map, nested lists).
+function emailList(value) {
+  if (value === null || value === undefined) return [];
+  const item = (raw) => {
+    const t = raw.trim();
+    if (!t || /^[[{]/.test(t)) return null;
+    if (/^["']/.test(t)) { const v = parseScalar(t); return v.problem ? null : v.value; }
+    return t.includes(": ") ? null : t;
+  };
+  if (value.flow !== undefined) {
+    const inner = value.flow.trim().match(/^\[([\s\S]*)\]$/);
+    if (!inner) return null;
+    if (!inner[1].trim()) return [];
+    // Split on the commas outside quotes.
+    const parts = [];
+    let cur = "", quote = null;
+    for (const ch of inner[1]) {
+      if (quote) { if (ch === quote) quote = null; cur += ch; continue; }
+      if (ch === '"' || ch === "'") { quote = ch; cur += ch; continue; }
+      if (ch === ",") { parts.push(cur); cur = ""; continue; }
+      cur += ch;
+    }
+    parts.push(cur);
+    const items = parts.map(item);
+    return items.includes(null) ? null : items;
+  }
+  if (value.block !== undefined) {
+    const items = value.block.split("\n").filter((l) => l.trim() && !/^\s*#/.test(l)).map((l) => {
+      const m = l.match(/^\s*-\s+(.*?)\s*(#.*)?$/);
+      return m ? item(m[1]) : null;
+    });
+    return items.includes(null) ? null : items;
+  }
+  return null;
+}
+
 // ---------- walking ----------
 
 function walk(dir) {
@@ -198,9 +236,14 @@ function checkConcept(file) {
   const str = (k) => (typeof data[k] === "string" ? data[k].trim() : "");
   if (!str("type")) error(file, 'missing or empty "type"');
   if (!str("owner")) error(file, 'missing "owner" (Dirox rule: the person accountable for this concept)');
-  else if (!EMAIL.test(str("owner"))) warn(file, `owner "${str("owner")}" is not an email: write the person's email (their git user.email); /dirox-techlead:setup-project converts usernames`);
+  else if (!EMAIL.test(str("owner"))) warn(file, `owner "${str("owner")}" is not an email: write the person's email (their git user.email); /dirox-project:set-up-repo converts usernames`);
+  if ("collaborators" in data) {
+    const list = emailList(data.collaborators);
+    if (!list) error(file, '"collaborators" must be a list of emails: collaborators: [name@example.com, other@example.com]');
+    else for (const c of list.filter((x) => !EMAIL.test(x))) error(file, `collaborator "${c}" is not an email: write the person's email (their git user.email)`);
+  }
   for (const m of yaml.matchAll(/human:([^\s"',}\]]+)/g)) {
-    if (!EMAIL.test(m[1])) warn(file, `verified by "human:${m[1]}": write "human:<email>"; /dirox-techlead:setup-project converts usernames`);
+    if (!EMAIL.test(m[1])) warn(file, `verified by "human:${m[1]}": write "human:<email>"; /dirox-project:set-up-repo converts usernames`);
   }
   if (!str("title")) warn(file, 'no "title" (the file name is used in the index)');
   if (!str("description")) warn(file, 'no "description" (its index line will be empty)');
