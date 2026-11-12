@@ -40,17 +40,17 @@ context: |
   instructions.
 rules:
   proposal:
-    - 'Start the file with two lines before the first heading: "Jira: <KEY-123>" and "Size: normal" or "Size: big" (the size from /dirox-dev:start-change). /dirox-dev:start-change adds two more once the design is written: "Difficulty: routine" or "Difficulty: tricky", then "Tier: light", "Tier: standard" or "Tier: heavy".'
+    - 'Start the file with two lines before the first heading: "Jira: <KEY-123>" and "Size: normal" or "Size: large" (the size from /dirox-ticket:plan-ticket; an older "Size: big" reads as large). /dirox-ticket:plan-ticket adds two more once the design is written: "Difficulty: routine" or "Difficulty: tricky", then "Tier: light", "Tier: standard" or "Tier: heavy".'
     - State what is out of scope.
-    - 'If a scenario is not an acceptance criterion in the Jira ticket, list it under a "Not in Jira yet" heading; the ticket owner adds it to Jira before approving.'
+    - 'If a scenario is not an acceptance criterion in the Jira ticket, list it under a "Not in Jira yet" heading; /dirox-ticket:plan-ticket writes it to Jira on its yes.'
     - 'Include a "## Criteria coverage" section: a table of each acceptance criterion (WHEN/THEN) with its source (Jira, a spec requirement, a checklist row, a decision), then "Considered, not needed" with a reason for each, then any open question left.'
-    - 'End with a "## Jira acceptance criteria" section: first line "Read from <KEY-123> on <YYYY-MM-DD HH:MM>", then the ticket''s acceptance criteria exactly as they are in Jira, one per line ("None in Jira" if there are none). It is the snapshot /dirox-core:jira sync compares Jira with; do not edit it by hand.'
+    - 'End with a "## Jira acceptance criteria" section: first line "Read from <KEY-123> on <YYYY-MM-DD HH:MM>", then the ticket''s acceptance criteria exactly as they are in Jira, one per line ("None in Jira" if there are none). It is the snapshot /dirox-core:jira sync-specs compares Jira with; do not edit it by hand.'
   specs:
     - Every acceptance criterion in the Jira ticket becomes at least one scenario, keeping its meaning; reword only to make it testable.
     - 'When a requirement relies on a domain term, decision, data entity or integration, end its description with "Knowledge: `okf/<folder>/<file>.md`" instead of restating it.'
-    - Scenario names are short and unique within the capability, because test names contain them.
+    - Scenario names are short and unique within the feature, because test names contain them.
   design:
-    - 'Mark every decision that would be costly to reverse (framework, data model, security, hosting, integration) with "Decision record needed", and write it under its own heading in the four parts of an okf/ decision record: Context, Decision, Alternatives considered, Consequences. Reviewers approve that text; /dirox-dev:close-change copies it into okf/decisions/, so it is written once, here.'
+    - 'Mark every decision that would be costly to reverse (framework, data model, security, hosting, integration) with "Decision record needed", and write it under its own heading in the four parts of an okf/ decision record: Context, Decision, Alternatives considered, Consequences. Reviewers approve that text; /dirox-ticket:finish-ticket copies it into okf/decisions/, so it is written once, here.'
     - Cite the okf/decisions/ and okf/architecture/ files the design follows.
   tasks:
     - Each step leaves the code working and testable.

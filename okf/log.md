@@ -1,5 +1,9 @@
 # Knowledge log
 
+## 2026-11-12
+* **Added**: [Review gates block merges again](/decisions/dirox-kit-3-2-0-review-gates-block-merges.md) - the project now has a second account for QC and review, so the gates block merges.
+* **Deprecated**: [Solo project: review gates are warnings](/decisions/solo-project-review-gates.md) - superseded by the decision above.
+
 ## 2026-11-04
 * **Added**: [The owner's app has eight pages at fixed addresses, with the Overview as home](/decisions/MOQ-30-page-map-and-addresses.md) - MOQ-30 decision D1.
 * **Added**: [Page tests render React with happy-dom, without a testing library](/decisions/MOQ-30-page-tests-with-happy-dom.md) - MOQ-30 decision D7.
