@@ -24,7 +24,6 @@ tags: [jira]
 | Feature ticket | `Story` |
 | Small fix | `Task` (`Bug` for a defect) |
 | Bug found by QC | `Subtask` |
-| QC check after merge (`qc:after-merge` tickets) | `Task` |
 | Group of tickets | `Epic` |
 
 ## Status for each stage
@@ -33,11 +32,10 @@ The workflow has only `To Do`, `In Progress` and `Done`.
 | Stage | Jira status |
 |---|---|
 | Ticket ready to start | `To Do` |
-| Proposal approved | `To Do` (no separate status) |
 | Being built | `In Progress` |
-| QC testing (optional, `qc:required` tickets) | none |
+| QC testing (optional) | none |
 | PR ready for review | `In Progress` (no separate status) |
-| Merged | `Done` (moved by the Done rule in the kit's `docs/jira.md`, or by people) |
+| Merged | `Done` (moved by the Jira automation in the kit's `jira-done-rule.md`, or by people) |
 
 ## Dependencies
 - Link type: `Blocks` (outward `blocks`, inward `is blocked by`)
@@ -45,13 +43,15 @@ The workflow has only `To Do`, `In Progress` and `Done`.
 ## Ticket labels
 | What | Where | Values |
 |---|---|---|
-| Source | label | `src:kickoff`, `src:claude`, `src:pm` |
-| Capability | label `cap:<capability>` | the capability name, as in `openspec/specs/`, or `tooling` for work outside the specs |
-| Size | label `size:<value>` | `trivial`, `normal`, `big` |
+| Source | label | `src:intent`, `src:kickoff`, `src:claude`, `src:pm` |
+| Feature | label `cap:<feature>` | the feature name, as in `openspec/specs/`, or `tooling` for work outside the specs |
+| Size | label `size:<value>` | `trivial`, `normal`, `large` (`big`, written before 3.0.0, reads as `large`) |
 | Difficulty | label `difficulty:<value>` | `routine`, `tricky` |
-| QC | label `qc:<value>` | `required` (QC tests the PR's build and approves it before merge), `after-merge` (no PR build: QC tests after the merge, a QC check ticket holds back the release), `none`; set by the PM |
+
+## Fields
+- Story points: none (no story points field in the project; points come from the size labels, trivial 1, normal 3, large 8)
 
 ## Conventions
 - Labels or components the team uses: none yet (no components, no labels on tickets)
-- Proposal review turnaround: 2 working days
+- Review turnaround: 2 working days
 - Started before the baseline: none
