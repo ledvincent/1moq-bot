@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance } from 'fastify';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { gaxios, JWT } from 'google-auth-library';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createGoogleJwt,
   GoogleSheetSource,
@@ -30,7 +31,9 @@ const secondTab = [
 ];
 
 beforeAll(async () => {
-  server = Fastify({ logger: false });
+  // Closing drops every connection: after the time-out test, Node's fetch reconnects without
+  // sending a request, and the server would otherwise wait for that connection forever.
+  server = Fastify({ logger: false, forceCloseConnections: true });
   server.addHook('onRequest', async (request) => {
     requests.push({
       method: request.method,
@@ -49,6 +52,11 @@ beforeAll(async () => {
     const { range } = request.params as { range: string };
     if (range.startsWith("'Leads'!")) return { range, values: firstTab };
     return { range, values: secondTab };
+  });
+  // A stand-in for Google's token endpoint, answering the status in its path.
+  server.post('/token/:status', async (request, reply) => {
+    const status = Number((request.params as { status: string }).status);
+    return reply.code(status).send({ error: 'backend_error', error_description: 'Try again.' });
   });
   baseUrl = await server.listen({ port: 0, host: '127.0.0.1' });
 });
@@ -154,11 +162,56 @@ describe('GoogleSheetSource', () => {
 });
 
 describe('googleTokenProvider', () => {
-  it('turns a key Google cannot use into "access-refused"', async () => {
-    const getToken = googleTokenProvider({
-      clientEmail: 'reader@moq-test.iam.gserviceaccount.com',
-      privateKey: 'not-a-real-key',
+  const account = {
+    clientEmail: 'reader@moq-test.iam.gserviceaccount.com',
+    privateKey: 'not-a-real-key',
+  };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // The error Google's HTTP library really gives for a token request to `url`: the request is
+  // made, without retries, to the local stand-in or to a closed port, never to Google.
+  async function tokenRequestError(url: string): Promise<unknown> {
+    try {
+      await new gaxios.Gaxios().request({ url, method: 'POST', retry: false });
+    } catch (error) {
+      return error;
+    }
+    return expect.fail('expected the token request to fail');
+  }
+
+  // Google's token request, as the JWT client makes it, fails with `error`.
+  function tokenRequestFailsWith(error: unknown) {
+    vi.spyOn(JWT.prototype, 'getAccessToken').mockImplementation(async () => {
+      throw error;
     });
+  }
+
+  it('turns a key Google cannot use into "access-refused"', async () => {
+    const getToken = googleTokenProvider(account);
     expect(await readFailure(getToken())).toBe('access-refused');
+  });
+
+  it.each([
+    [503, 'unavailable'],
+    [500, 'unavailable'],
+    [429, 'unavailable'],
+    [400, 'access-refused'],
+    [401, 'access-refused'],
+  ])('turns a token request answered %i into "%s"', async (status, kind) => {
+    tokenRequestFailsWith(await tokenRequestError(`${baseUrl}/token/${status}`));
+    expect(await readFailure(googleTokenProvider(account)())).toBe(kind);
+  });
+
+  it('turns a token request that reaches no server into "unavailable"', async () => {
+    tokenRequestFailsWith(await tokenRequestError('http://127.0.0.1:1/token'));
+    expect(await readFailure(googleTokenProvider(account)())).toBe('unavailable');
+  });
+
+  it('turns an answer without a token into "access-refused"', async () => {
+    vi.spyOn(JWT.prototype, 'getAccessToken').mockImplementation(async () => ({ token: null }));
+    expect(await readFailure(googleTokenProvider(account)())).toBe('access-refused');
   });
 });

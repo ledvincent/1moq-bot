@@ -147,4 +147,26 @@ describe('Leads', () => {
     const root = await renderAt('/leads/lead-99');
     expect(root.querySelector('h1')!.textContent).toBe('Page not found');
   });
+
+  it("shows the server's error, not Page not found, when the lead cannot be loaded", async () => {
+    const api = fakeApi();
+    spyOnRequests(async (input, init) =>
+      String(input) === '/api/leads/lead-01'
+        ? ({
+            ok: false,
+            status: 500,
+            json: async () => ({ error: 'The database could not be reached.' }),
+          } as Response)
+        : api.handler(input, init),
+    );
+    const root = await renderAt('/leads/lead-01');
+
+    expect(root.querySelector('main [role="alert"]')!.textContent).toBe(
+      'The database could not be reached.',
+    );
+    expect(root.textContent).not.toContain('Page not found');
+    expect(document.title).toBe('Lead · 1moq-bot');
+    const marked = root.querySelector('nav[aria-label="Menu"] a[aria-current="page"]');
+    expect(marked!.textContent).toBe('Leads');
+  });
 });

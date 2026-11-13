@@ -16,11 +16,13 @@ const SHEET_ID = '1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789';
 const SHEET_LINK = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit#gid=0`;
 const HEADER = ['Business', 'Buyer type', 'City / area', 'Language', 'Email', 'Notes'];
 
-// Records the jobs the routes queue; a test runs them itself.
+// Records the jobs the routes queue; a test runs them itself. With `failure` set, queuing fails.
 class RecordingQueue implements Queue {
   readonly sent: { name: string; data: object; options?: JobOptions }[] = [];
+  failure: Error | null = null;
   async registerJob() {}
   async enqueue<T extends object>(name: string, data: T, options?: JobOptions) {
+    if (this.failure) throw this.failure;
     this.sent.push({ name, data, options });
     return 'job';
   }
@@ -60,6 +62,7 @@ describe('sourcing API', () => {
     await database.db.execute(sql`truncate lead, sheet_sync cascade`);
     await clearSetting(database.db, SHEET_LINK_SETTING);
     queue.sent.length = 0;
+    queue.failure = null;
     sheets = new FakeSheetSource();
     syncDeps = {
       db: database.db,
@@ -147,6 +150,24 @@ describe('sourcing API', () => {
         linkSet: true,
         sync: { id, status: 'running', trigger: 'now' },
       });
+    });
+
+    it('marks the sync failed when its run cannot be queued, so the next one can start', async () => {
+      await saveLink();
+      queue.failure = new Error('The job queue is down');
+      const response = await api('POST', '/api/sheet-syncs');
+      expect(response.statusCode).toBe(500);
+
+      const latest = (await api('GET', '/api/sheet-syncs/latest')).json();
+      expect(latest.sync).toMatchObject({
+        trigger: 'now',
+        status: 'failed',
+        failure: 'The sync stopped before the end. Nothing was imported.',
+      });
+      expect(Date.parse(latest.sync.finishedAt)).not.toBeNaN();
+
+      queue.failure = null;
+      expect((await api('POST', '/api/sheet-syncs')).statusCode).toBe(202);
     });
 
     it('Second sync while one runs', async () => {

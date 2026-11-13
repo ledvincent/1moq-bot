@@ -894,6 +894,22 @@ describe('sheet sync', () => {
       expect(JSON.stringify(logged)).not.toMatch(/shop10|Shop 10|@/);
     });
 
+    it('fails a sync whose sheet link was cleared after it started, reading nothing', async () => {
+      setSheet(validRows(2));
+      const start = await startSync(database.db, 'now');
+      if (!start.started) throw new Error(start.reason);
+      await clearSetting(database.db, SHEET_LINK_SETTING);
+      await runSync(deps, start.id);
+
+      const report = (await latestSync(database.db))!;
+      expect(report).toMatchObject({ status: 'failed', failure: 'No sheet link is set.' });
+      expect(report.finishedAt).toBeInstanceOf(Date);
+      expect(await leads()).toEqual([]);
+      expect(sheets.calls).toEqual([]);
+      const failed = logged.find((entry) => entry.message === 'Sheet sync failed')!;
+      expect(failed.data).toMatchObject({ trigger: 'now', failure: 'no-link' });
+    });
+
     it('Daily sync failure shown', async () => {
       setSheet(validRows(1));
       sheets.failure = 'not-shared';
