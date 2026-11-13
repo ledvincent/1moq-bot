@@ -5,3 +5,5 @@
 | 2026-11-12 18:43 | vincent.ledreau@dirox.net | conversation | conversation | - | 438k | 13m 44s |
 | 2026-11-12 18:43 | vincent.ledreau@dirox.net | testing | jira review-ticket-criteria | medium | 155k | 2m 1s |
 | 2026-11-12 19:17 | vincent.ledreau@dirox.net | testing | write-test-cases | medium | 160k | 4m 6s |
+| 2026-11-13 10:25 | vincent.ledreau@dirox.net | conversation | conversation | - | 207k | 0s |
+| 2026-11-13 10:25 | vincent.ledreau@dirox.net | building | plan-ticket | high | 799k | 8h 3m |
