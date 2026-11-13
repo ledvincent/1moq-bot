@@ -63,7 +63,7 @@ None.
 | 1 | WHEN the owner starts a sync THEN each valid row whose email, website domain or Instagram handle matches no lead becomes a lead waiting for review, with no fit level, in the sheet's row order | Jira | Sync now imports new rows |
 | 2 | WHEN the scheduled sync runs (once a day, at 06:00 Asia/Ho_Chi_Minh) THEN it imports rows the same way as Sync now | Jira (time: answer 8) | Daily sync at six in the owner's morning; Daily sync imports like Sync now |
 | 3 | WHEN a row is imported THEN the lead holds the row's Business, Buyer type, Language, City / area, Why they fit, Website / Instagram, Owner / founder, Notes and Email values unchanged, and its source is Google Sheet | Jira | Imported lead keeps the row's values |
-| 4 | WHEN a row has no email THEN it is not imported and the report counts it among the "no email" rows; WHEN it has no valid address THEN it is not imported and the report lists it as "invalid email" | Jira, rewritten (owner decision 2026-11-13); not in Jira yet | Row with no email; Row with an invalid email |
+| 4 | WHEN a row has no email THEN it is not imported and the report counts it among the "no email" rows; WHEN it has no valid address THEN it is not imported and the report lists it as "invalid email" | Jira, rewritten (owner decision 2026-11-13) | Row with no email; Row with an invalid email |
 | 5 | WHEN a row has an email but no Business THEN it is not imported and the report lists it as "no business name" | Jira | Row with no business name |
 | 6 | WHEN one Email cell holds several addresses THEN the first valid one is kept and the report notes "other addresses ignored" | Jira (wording: QC) | Several addresses in one cell |
 | 7 | WHEN "Email sent" or "Responded" holds any value other than empty, unticked, "No" or "FALSE" (ignoring case) THEN the row is not imported and the report lists it as "already contacted"; an empty or unticked cell, "No" or "FALSE" does not skip the row | Jira, rewritten (answer 5) | Row already contacted; Row not contacted yet |
@@ -74,13 +74,13 @@ None.
 | 12 | WHEN "Buyer type" is empty or equals no client type's name, ignoring case and accents, THEN the lead's type is "Other" and it is flagged "type unknown" | Jira (empty: QC MOQ-31-27) | Buyer type matched ignoring case and accents; Unknown or empty buyer type |
 | 13 | WHEN "Language", ignoring case, surrounding spaces and accents, is not English, EN, Anglais, French, FR or Français THEN the lead has no language and is flagged "no language"; no language is guessed, then or later | Jira, rewritten (answer 6) | Accepted language values; Other language value; Empty language never filled later |
 | 14 | WHEN "City / area" cannot be placed in a time zone THEN no time zone, flagged "no time zone"; WHEN it could be in more than one THEN flagged "time zone unclear"; a city name without a country takes the zone of its most populous match when that match has at least 10 times the people of every match in another zone | Jira, sharpened (answer 4; tie-break: answer of 2026-11-13) | City placed in one time zone; Bare city name with a much larger namesake; City that cannot be placed; City in several time zones |
-| 15 | WHEN a sync ends THEN the report gives leads created (of which flagged), rows skipped and the number of rows with no email, and lists each other skipped or flagged row with its sheet row number (header = row 1) and reason | Jira, rewritten (owner decision 2026-11-13); not in Jira yet | Report counts and lists rows; Header-only sheet |
+| 15 | WHEN a sync ends THEN the report gives leads created (of which flagged), rows skipped and the number of rows with no email, and lists each other skipped or flagged row with its sheet row number (header = row 1) and reason | Jira, rewritten (owner decision 2026-11-13) | Report counts and lists rows; Header-only sheet |
 | 16 | WHEN a needed column (Business, Buyer type, Email) is missing THEN nothing is imported and the error names the column; columns in another order still work; only the first tab is read | Jira | Needed column missing; Columns in another order; Only the first tab is read |
 | 17 | WHEN the sheet cannot be read (not shared, wrong link, Google unavailable) or a sync fails before the end THEN no lead from that sync is kept, existing leads unchanged, Find leads shows the failure with time and reason, for Sync now and the scheduled sync alike | Jira | Sheet not shared with the tool; Sheet link to no sheet; Link that is not a Google Sheet; Google unavailable; Sync fails before the end; Daily sync failure shown |
 | 18 | WHEN a sync is already running and another one starts THEN no second sync runs, no duplicate lead, the page says "A sync is already running" | Jira | Second sync while one runs; Daily sync while one runs |
 | 19 | WHEN no sheet link is set THEN Sync now is greyed out with a link to Settings, and the scheduled sync does not run | Jira | Sync now without a sheet link; No daily sync without a sheet link |
 | 20 | WHEN a sync runs THEN nothing is written to the sheet | Jira | Sync writes nothing to the sheet |
-| 21 | WHEN the sheet has more than 5,000 data rows THEN nothing is imported and Find leads shows the failure "The sheet has more than 5,000 rows" | answer 7 (QC open question 8); limit raised from 2,000 (owner decision 2026-11-13); not in Jira yet | Sheet over 5,000 rows |
+| 21 | WHEN the sheet has more than 5,000 data rows THEN nothing is imported and Find leads shows the failure "The sheet has more than 5,000 rows" | answer 7 (QC open question 8); limit raised from 2,000 (owner decision 2026-11-13) | Sheet over 5,000 rows |
 | 22 | WHEN the owner opens Settings THEN it shows the service account's email to share the sheet with, and saves the sheet link | ticket description; QC MOQ-31-03; not in Jira yet | Settings shows the service account and saves the link |
 | 23 | WHEN the owner opens Leads or a lead's page THEN imported leads show with their values, sources, status and flags (read only) | answer 2; QC MOQ-31-02; not in Jira yet | Imported leads on the Leads list; Imported lead's own page |
 | 24 | WHEN a page or a section of a page still shows sample data THEN it shows the "Sample data" marker; WHEN a page is connected (Leads, a lead's page) THEN it shows no marker | platform spec requirement "Pages show sample data" (MOQ-30); answer of 2026-11-13; not in Jira yet | Every page shows the sample data marker (modified); Connected pages show no marker |
@@ -101,15 +101,15 @@ For QC (QC updates its cases, not this change): answers 5 and 6 change the expec
 
 ## Not in Jira yet
 
-Criteria 4, 15 and 21, as rewritten in the coverage table on 2026-11-13 (owner decisions after reshaping the master sheet: rows with no email counted, not listed; the limit raised to 5,000 rows). Earlier: criteria 21 to 24 added and 2, 6, 7, 8, 12, 13 and 14 rewritten, written to MOQ-31 on 2026-11-13.
+None: criteria 4, 15 and 21 rewritten (rows with no email counted, not listed; the limit raised to 5,000 rows) and written to MOQ-31 on 2026-11-13 15:26. Earlier: criteria 21 to 24 added and 2, 6, 7, 8, 12, 13 and 14 rewritten, written to MOQ-31 on 2026-11-13.
 
 ## Jira acceptance criteria
 
-Read from MOQ-31 on 2026-11-13 11:03
+Read from MOQ-31 on 2026-11-13 15:26
 * WHEN the owner starts a sync THEN each valid row whose email, website domain or Instagram handle matches no lead becomes a lead waiting for review, with no fit level, in the sheet's row order.
 * WHEN the scheduled sync runs (once a day, at 06:00 Asia/Ho_Chi_Minh) THEN it imports rows the same way as Sync now.
 * WHEN a row is imported THEN the lead holds the row's Business, Buyer type, Language, City / area, Why they fit, Website / Instagram, Owner / founder, Notes and Email values unchanged, and its source is Google Sheet.
-* WHEN a row has no email, or no valid address, THEN it is not imported and the report lists it as "no email" or "invalid email".
+* WHEN a row has no email THEN it is not imported and the report counts it among the "no email" rows; WHEN it has no valid address THEN it is not imported and the report lists it as "invalid email".
 * WHEN a row has an email but no Business THEN it is not imported and the report lists it as "no business name".
 * WHEN one Email cell holds several addresses THEN the first valid one is kept and the report notes "other addresses ignored".
 * WHEN "Email sent" or "Responded" holds any value other than empty, unticked, "No" or "FALSE" (ignoring case) THEN the row is not imported and the report lists it as "already contacted"; an empty or unticked cell, "No" or "FALSE" does not skip the row.
@@ -120,13 +120,13 @@ Read from MOQ-31 on 2026-11-13 11:03
 * WHEN "Buyer type" is empty or equals no client type's name, ignoring case and accents, THEN the lead's type is "Other" and it is flagged "type unknown".
 * WHEN "Language", ignoring case, surrounding spaces and accents, is not English, EN, Anglais, French, FR or Français THEN the lead has no language and is flagged "no language"; no language is guessed, then or later.
 * WHEN "City / area" cannot be placed in a time zone THEN the lead has no time zone and is flagged "no time zone"; WHEN it could be in more than one time zone THEN it is flagged "time zone unclear"; a city name without a country takes the zone of its most populous match when that match has at least 10 times the people of every match in another time zone.
-* WHEN a sync ends THEN the report gives the number of leads created (of which flagged) and the number of rows skipped, and lists each skipped or flagged row with its sheet row number (header = row 1) and reason.
+* WHEN a sync ends THEN the report gives the number of leads created (of which flagged), the number of rows skipped and the number of rows with no email, and lists each other skipped or flagged row with its sheet row number (header = row 1) and reason.
 * WHEN a needed column (Business, Buyer type, Email) is missing THEN nothing is imported and the error names the column; columns in another order still work; only the first tab is read.
 * WHEN the sheet cannot be read (not shared with the tool, wrong link, Google unavailable) or a sync fails before the end THEN no lead from that sync is kept, existing leads are unchanged, and the Find leads page shows the failure with its time and reason, for Sync now and the scheduled sync alike.
 * WHEN a sync is already running and another one starts THEN no second sync runs, no duplicate lead is created, and the page says "A sync is already running".
 * WHEN no sheet link is set THEN Sync now is greyed out with a link to Settings, and the scheduled sync does not run.
 * WHEN a sync runs THEN nothing is written to the sheet.
-* WHEN the sheet has more than 2,000 data rows THEN nothing is imported and Find leads shows the failure "The sheet has more than 2,000 rows".
+* WHEN the sheet has more than 5,000 data rows THEN nothing is imported and Find leads shows the failure "The sheet has more than 5,000 rows".
 * WHEN the owner opens Settings THEN it shows the service account's email to share the sheet with, and saves the sheet link.
 * WHEN the owner opens Leads or a lead's page THEN imported leads show with their values, sources, status and flags (read only).
 * WHEN a page or a section of a page still shows sample data THEN it shows the "Sample data" marker; WHEN a page is connected (Leads, a lead's page) THEN it shows no marker.
