@@ -66,7 +66,7 @@ Knowledge: `okf/domain/lead.md`
 
 #### Scenario: Row with no email
 - **WHEN** a row's Email is empty or holds only spaces
-- **THEN** no lead is created from it and the report lists the row as "no email"
+- **THEN** no lead is created from it and the report counts it in "No email: 1 row", without a line for the row
 
 #### Scenario: Row with an invalid email
 - **WHEN** a row's Email holds no valid address, such as "hello@", "@shop.example" or "see website"
@@ -156,20 +156,20 @@ Knowledge: `okf/data/lead.md`, `okf/domain/lead.md`
 - **THEN** each lead has no time zone and is flagged "time zone unclear"
 
 ### Requirement: Sync report
-Each sync SHALL end in a report on Find leads: when it ran, whether it was Sync now or the daily sync, the number of leads created (of which flagged) and of rows skipped, and each skipped, flagged or noted row with its sheet row number (the header is row 1) and its reasons. The report SHALL hold no email address.
+Each sync SHALL end in a report on Find leads: when it ran, whether it was Sync now or the daily sync, the number of leads created (of which flagged), of rows skipped and of rows with no email, and each other skipped, flagged or noted row with its sheet row number (the header is row 1) and its reasons. Rows with no email SHALL be counted only, not listed one by one. The report SHALL hold no email address.
 Knowledge: `okf/integrations/google-sheets.md`
 
 #### Scenario: Report counts and lists rows
 - **WHEN** a sync reads a valid row 2, a row 3 with no email, a row 4 with "Email sent" "Yes", a row 5 with the Buyer type "Surf shop" and a valid row 6
-- **THEN** the report says 3 leads created, of which 1 flagged, and 2 rows skipped
-- **AND** it lists row 3 "no email", row 4 "already contacted" and row 5 "type unknown", and not rows 2 and 6
+- **THEN** the report says 3 leads created, of which 1 flagged, 2 rows skipped and "No email: 1 row"
+- **AND** it lists row 4 "already contacted" and row 5 "type unknown", and not rows 2, 3 and 6
 
 #### Scenario: Header-only sheet
 - **WHEN** the sheet's first tab holds its header row only
 - **THEN** the report says 0 leads created and 0 rows skipped, with no error
 
 ### Requirement: Sheet layout
-A sync SHALL read only the sheet's first tab, row 1 being the header. Columns SHALL be found by their header name, ignoring case and extra spaces, in any order. A sheet missing a needed column (Business, Buyer type, Email) or holding more than 2,000 rows below the header SHALL import nothing.
+A sync SHALL read only the sheet's first tab, row 1 being the header. Columns SHALL be found by their header name, ignoring case and extra spaces, in any order. A sheet missing a needed column (Business, Buyer type, Email) or holding more than 5,000 rows below the header SHALL import nothing.
 Knowledge: `okf/integrations/google-sheets.md`
 
 #### Scenario: Needed column missing
@@ -184,9 +184,9 @@ Knowledge: `okf/integrations/google-sheets.md`
 - **WHEN** the sheet has two tabs with valid rows and the link set on Settings points at the second tab
 - **THEN** only the first tab's rows are imported
 
-#### Scenario: Sheet over 2,000 rows
-- **WHEN** the first tab holds 2,001 rows below the header
-- **THEN** no lead is created and Find leads shows the failure "The sheet has more than 2,000 rows"
+#### Scenario: Sheet over 5,000 rows
+- **WHEN** the first tab holds 5,001 rows below the header
+- **THEN** no lead is created and Find leads shows the failure "The sheet has more than 5,000 rows"
 
 ### Requirement: A failed sync keeps nothing
 A sync SHALL keep its leads only if it reaches its end. When the sheet cannot be read or the sync fails before its end, no lead and no source from that sync SHALL be kept, existing leads SHALL be unchanged, and Find leads SHALL show the failure with its time and a reason the owner can read, for Sync now and the daily sync alike.

@@ -40,7 +40,7 @@ To be copied to `okf/decisions/MOQ-31-google-sheet-lead-source.md`.
 
 **Decision.**
 - The tool reads the sheet through Google's official Sheets API v4 with a **service account** of a Google Cloud project owned by the company (Sheets API enabled, no project roles). The owner shares the sheet with the service account's email address as Viewer; Settings shows that address. The key is the secret `GOOGLE_SERVICE_ACCOUNT_KEY` (D7).
-- **Read-only**: the access token asks for the `https://www.googleapis.com/auth/spreadsheets.readonly` scope only, and the tool makes two GET requests per sync: the spreadsheet's tab list (`fields=sheets.properties`), then the first tab's values (`valueRenderOption=FORMATTED_VALUE`, rows 1 to 2,002), so a ticked checkbox reads `TRUE` and a date reads as the sheet shows it.
+- **Read-only**: the access token asks for the `https://www.googleapis.com/auth/spreadsheets.readonly` scope only, and the tool makes two GET requests per sync: the spreadsheet's tab list (`fields=sheets.properties`), then the first tab's values (`valueRenderOption=FORMATTED_VALUE`, rows 1 to 5,002), so a ticked checkbox reads `TRUE` and a date reads as the sheet shows it.
 - The access token comes from `google-auth-library` (Google's official Node.js auth library, pinned exactly, the latest release on the day it is added); the two requests use Node's `fetch` with a 20-second time-out.
 - A sync runs on the server as a pg-boss job, when the owner clicks Sync now and **once a day at 06:00 Asia/Ho_Chi_Minh**. It is **all or nothing**: the sheet is read first, then every row is written in one database transaction, so a failure keeps nothing. **One sync runs at a time**, enforced by the database (D4).
 - The adapter sits behind the `SheetSource` interface in `src/sourcing/`, with a fake for tests.
@@ -56,7 +56,7 @@ To be copied to `okf/decisions/MOQ-31-google-sheet-lead-source.md`.
 - Google (Sheets API) becomes a data processor: listed in `okf/integrations/google-sheets.md` and the overview's external services. The Sheets API is free within its quotas (two read requests per sync).
 - Setting up a new environment needs the Google Cloud project, the service account and its key (`okf/integrations/google-sheets.md` says how). A missing key does not stop the tool; Settings says Google access is not set up and a sync fails with that reason.
 - The later write-back ticket changes the scope, and the owner then shares the sheet as Editor.
-- The sheet must not hold more than 2,000 rows below its header; a bigger sheet fails with "The sheet has more than 2,000 rows".
+- The sheet must not hold more than 5,000 rows below its header; a bigger sheet fails with "The sheet has more than 5,000 rows" (raised from 2,000 on 2026-11-13: the owner's master sheet holds 2,200 leads, all countries on one tab).
 - This change is not deployed to the production server before MOQ-4 (sign-in): imported leads hold personal data.
 
 ### D2. Lead tables and keyed-hash tables. Decision record needed
@@ -132,13 +132,13 @@ To be copied to `okf/decisions/MOQ-31-offline-place-lookup.md`.
 5. **Restart**: at start-up, before the jobs are registered, any `running` sync is set to `failed` with "The tool restarted during the sync", so the index never stays held. A `sheet.sync` job whose sync is no longer `running` does nothing.
 6. **Test hook**: `runSync` takes an optional `afterRow` callback (tests only) so a test can make a sync fail after some rows were written.
 
-Rows of 2,000 leads mean about 10,000 statements in one transaction: a few seconds, well inside the job's limits.
+Rows of 5,000 leads mean about 25,000 statements in one transaction: well under a minute, inside the job's limits.
 
 ### D5. Reading a row
 
 Pure functions in `src/sourcing/sheet-rows.ts` and `src/sourcing/row-rules.ts`:
 - **Header**: row 1 of the first tab. A header is compared after trimming, collapsing inner spaces and lower-casing. Columns: `Business`, `Buyer type`, `City / area`, `Language`, `Why they fit`, `Notes`, `Owner / founder (public)` (also accepted as `Owner / founder`), `Website / Instagram`, `Email`, `Email sent`, `Responded`. Needed: Business, Buyer type, Email; missing ones fail the sync with `The sheet has no "<name>" column` (every missing one named). Another column is ignored; a missing optional column reads as empty; with two columns of one name, the first counts.
-- **Row limit**: values are requested for rows 1 to 2,002; more than 2,001 rows returned (header plus 2,001) fails the sync with "The sheet has more than 2,000 rows" before anything is written. Google returns no trailing empty rows; an empty row in the middle is ignored, neither imported nor listed.
+- **Row limit**: values are requested for rows 1 to 5,002; more than 5,001 rows returned (header plus 5,001) fails the sync with "The sheet has more than 5,000 rows" before anything is written. Google returns no trailing empty rows; an empty row in the middle is ignored, neither imported nor listed.
 - **Row number**: its position in the tab, the header being row 1.
 - **Checks, in this order, the first that applies decides** (a skipped row has one reason):
   1. *Email*: the cell is split on commas, semicolons, slashes and spaces; each piece loses a leading `mailto:`. No piece → "no email". No valid piece → "invalid email". Otherwise the first valid one is kept, and any other piece adds the note "other addresses ignored". Valid: one `@`, a local part of 1 to 64 characters (letters, digits and ``!#$%&'*+/=?^_`{|}~.-``, no leading, trailing or double dot), a domain of at least two labels of letters, digits and hyphens (no label starting or ending with a hyphen, a last label of at least two letters), 254 characters at most.
@@ -153,6 +153,7 @@ Pure functions in `src/sourcing/sheet-rows.ts` and `src/sourcing/row-rules.ts`:
 - **Language**: the same normalisation; `english`, `en`, `anglais` → `en`; `french`, `fr`, `francais` → `fr`; anything else, empty included → none and the flag "no language".
 - **Time zone**: `placeTimeZone` (D3); unclear → the flag "time zone unclear", none → "no time zone".
 - A created lead with at least one flag counts as flagged; its line in the report lists its flags and its note, if any.
+- **No email in the report**: a row skipped for "no email" counts in the rows skipped and in a separate count of rows with no email, but gets no line of its own (owner decision 2026-11-13: the master sheet holds about 1,700 DM-only leads, which would fill every daily report). Every other skipped, flagged or noted row keeps its line. Find leads shows the count as "No email: <n> rows" ("1 row" for one) when it is not 0.
 
 ### D6. Failure reasons shown to the owner
 
@@ -164,7 +165,7 @@ Pure functions in `src/sourcing/sheet-rows.ts` and `src/sourcing/row-rules.ts`:
 | Token refused (401, invalid key) | Google refused the tool's access key. The service account key needs checking. |
 | No key set | The tool's Google access is not set up. |
 | Needed column missing | The sheet has no "Email" column. (each missing column named) |
-| Over the limit | The sheet has more than 2,000 rows |
+| Over the limit | The sheet has more than 5,000 rows |
 | Any other error during the run | The sync stopped before the end. Nothing was imported. |
 | Restart during the run | The tool restarted during the sync. Nothing was imported. |
 
