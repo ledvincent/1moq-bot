@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
+import { testConfig } from '../../../tests/helpers/test-config.ts';
 import { createTestDatabase, type TestDatabase } from '../../../tests/helpers/test-db.ts';
 import { start } from '../../main.ts';
 import { createDatabase, type Database } from './client.ts';
@@ -26,16 +27,7 @@ describe('migrations at start', () => {
   let database: Database;
 
   async function startAndStop(): Promise<void> {
-    const service = await start(
-      {
-        databaseUrl: testDb.url,
-        port: 0,
-        host: '127.0.0.1',
-        webDir: inject('webDir'),
-        dryRun: true,
-      },
-      { logger: false },
-    );
+    const service = await start(testConfig(testDb.url, inject('webDir')), { logger: false });
     await service.stop();
   }
 

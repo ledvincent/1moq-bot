@@ -155,11 +155,14 @@ describe('the public address', () => {
       expect(found, `${file} names no domain`).toEqual([]);
       expect(read(file), `${file} holds no placeholder address`).not.toContain(placeholderDomain);
     }
+    // The addresses of the external services the tool calls (MOQ-31: Google's Sheets API and its
+    // read-only scope, and the Google Sheets links the owner saves) are not the tool's address.
+    const externalServices =
+      /https:\/\/(?:sheets\.googleapis\.com|www\.googleapis\.com\/auth\/|docs\.google\.com\/spreadsheets\/)/gi;
     for (const file of [...sourceFiles('src'), ...sourceFiles('web')]) {
-      expect(read(file), `${file} holds no address`).not.toContain(placeholderDomain);
-      expect(read(file), `${file} holds no address`).not.toMatch(
-        /https:\/\/[a-z0-9.-]+\.[a-z]{2,}/i,
-      );
+      const code = read(file).replace(externalServices, '');
+      expect(code, `${file} holds no address`).not.toContain(placeholderDomain);
+      expect(code, `${file} holds no address`).not.toMatch(/https:\/\/[a-z0-9.-]+\.[a-z]{2,}/i);
     }
   });
 });

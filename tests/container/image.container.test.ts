@@ -65,6 +65,8 @@ describe('container image', () => {
       network,
       '-e',
       `DATABASE_URL=postgres://moq:${password}@${postgres}:5432/moq`,
+      '-e',
+      `MATCH_HASH_KEY=${randomBytes(32).toString('hex')}`,
       '-p',
       '127.0.0.1::3000',
       image,

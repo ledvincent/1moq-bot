@@ -1,9 +1,11 @@
 import { pathToFileURL } from 'node:url';
+import type { FastifyInstance } from 'fastify';
 import { loadConfig, SettingError, type Config } from './platform/config.ts';
-import { createDatabase } from './platform/db/client.ts';
+import { createDatabase, type Db } from './platform/db/client.ts';
 import { runMigrations } from './platform/db/migrate.ts';
 import { startQueue, type Queue, type QueueOptions } from './platform/queue.ts';
 import { buildApp } from './platform/http/app.ts';
+import { sourcingModule } from './sourcing/index.ts';
 
 export interface Service {
   // Address the web server listens on, e.g. http://127.0.0.1:3000
@@ -12,11 +14,19 @@ export interface Service {
   stop(): Promise<void>;
 }
 
+/** What the modules' hooks get: the database and the queue of the running service. */
+export interface ServiceContext {
+  db: Db;
+  queue: Queue;
+}
+
 export interface StartOptions {
   logger?: boolean;
   queue?: QueueOptions;
   // Called after the queue starts and before the server listens: where workers are registered.
-  registerJobs?: (queue: Queue) => Promise<void>;
+  registerJobs?: (queue: Queue, context: ServiceContext) => Promise<void>;
+  // Called while the web server is built: where the modules add their /api routes.
+  registerRoutes?: (app: FastifyInstance, context: ServiceContext) => Promise<void> | void;
 }
 
 // Starts the web server and the job worker in this one process.
@@ -26,11 +36,14 @@ export async function start(config: Config, options: StartOptions = {}): Promise
   try {
     await runMigrations(database.db);
     queue = await startQueue(config.databaseUrl, options.queue);
-    await options.registerJobs?.(queue);
+    const context: ServiceContext = { db: database.db, queue };
+    await options.registerJobs?.(queue, context);
     const app = await buildApp({
       pool: database.pool,
       webDir: config.webDir,
       logger: options.logger,
+      registerRoutes:
+        options.registerRoutes && ((routes) => options.registerRoutes!(routes, context)),
     });
     const url = await app.listen({ port: config.port, host: config.host });
     const runningQueue = queue;
@@ -67,7 +80,11 @@ async function main(): Promise<void> {
       : 'Dry-run is off: emails go to their recipients',
   );
 
-  const service = await start(config);
+  const sourcing = sourcingModule(config);
+  const service = await start(config, {
+    registerJobs: (queue, context) => sourcing.registerJobs(queue, context),
+    registerRoutes: (app, context) => sourcing.registerRoutes(app, context),
+  });
   let stopping = false;
   const shutdown = async (signal: string) => {
     if (stopping) return;

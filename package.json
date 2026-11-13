@@ -25,6 +25,7 @@
     "@fastify/static": "10.1.7",
     "drizzle-orm": "0.45.4",
     "fastify": "5.12.7",
+    "google-auth-library": "11.3.4",
     "luxon": "3.7.2",
     "pg": "8.23.1",
     "pg-boss": "12.38.0",

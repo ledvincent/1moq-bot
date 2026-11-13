@@ -8,6 +8,8 @@ export interface AppOptions {
   pool: pg.Pool;
   webDir: string;
   logger?: boolean;
+  // Where the modules add their /api routes, so platform imports no module.
+  registerRoutes?: (app: FastifyInstance) => Promise<void> | void;
 }
 
 export function isPageAddress(url: string): boolean {
@@ -18,6 +20,7 @@ export function isPageAddress(url: string): boolean {
 export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   const app = Fastify({ logger: options.logger ?? true });
   registerHealth(app, options.pool);
+  await options.registerRoutes?.(app);
   await app.register(fastifyStatic, { root: path.resolve(options.webDir), prefix: '/' });
   // Page addresses answer the app, which picks the page; /api and /u keep a plain 404.
   app.setNotFoundHandler((request, reply) => {

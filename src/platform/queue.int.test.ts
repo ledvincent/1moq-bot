@@ -1,4 +1,6 @@
+import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
+import { testConfig } from '../../tests/helpers/test-config.ts';
 import { createTestDatabase, type TestDatabase } from '../../tests/helpers/test-db.ts';
 import { start, type Service } from '../main.ts';
 import { startQueue } from './queue.ts';
@@ -28,16 +30,11 @@ describe('job queue', () => {
   });
 
   function startService(registerJobs: (service: Service['queue']) => Promise<void>) {
-    return start(
-      {
-        databaseUrl: testDb.url,
-        port: 0,
-        host: '127.0.0.1',
-        webDir: inject('webDir'),
-        dryRun: true,
-      },
-      { logger: false, queue: { pollingIntervalSeconds: 0.5 }, registerJobs },
-    );
+    return start(testConfig(testDb.url, inject('webDir')), {
+      logger: false,
+      queue: { pollingIntervalSeconds: 0.5 },
+      registerJobs,
+    });
   }
 
   it('Queued job runs in the same process', async () => {
@@ -50,6 +47,33 @@ describe('job queue', () => {
       await expect(within(ran.promise, 20_000)).resolves.toEqual({ n: 1 });
     } finally {
       await service.stop();
+    }
+  });
+
+  it('stores a schedule with its cron expression and time zone', async () => {
+    const queue = await startQueue(testDb.url);
+    try {
+      await queue.schedule(
+        'test.daily',
+        '0 6 * * *',
+        { from: 'schedule' },
+        {
+          tz: 'Asia/Ho_Chi_Minh',
+        },
+      );
+      const pool = new pg.Pool({ connectionString: testDb.url });
+      try {
+        const { rows } = await pool.query<{ cron: string; timezone: string; data: unknown }>(
+          "select cron, timezone, data from pgboss.schedule where name = 'test.daily'",
+        );
+        expect(rows).toEqual([
+          { cron: '0 6 * * *', timezone: 'Asia/Ho_Chi_Minh', data: { from: 'schedule' } },
+        ]);
+      } finally {
+        await pool.end();
+      }
+    } finally {
+      await queue.stop();
     }
   });
 

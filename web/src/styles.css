@@ -264,3 +264,29 @@ textarea {
 .strong {
   font-weight: 700;
 }
+
+.button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 56px 0 16px;
+}
+
+.section-heading h2 {
+  margin: 0;
+}
+
+/* Text from the sheet: kept line breaks, and long words or links never overflow. */
+.long-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.alert {
+  font-weight: 600;
+}
