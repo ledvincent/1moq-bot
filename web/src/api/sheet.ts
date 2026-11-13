@@ -23,6 +23,8 @@ export interface SyncReport {
   createdCount: number | null;
   flaggedCount: number | null;
   skippedCount: number | null;
+  // Rows skipped for "no email": counted in skippedCount, never listed in lines.
+  noEmailCount: number | null;
   lines: SyncReportLine[] | null;
   failure: string | null;
 }

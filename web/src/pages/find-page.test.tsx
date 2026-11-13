@@ -103,21 +103,39 @@ describe('Find leads, Google Sheet section', () => {
     );
   });
 
-  it('shows the last report: when, which trigger, the counts and each listed row', async () => {
+  it('Report counts and lists rows: when, which trigger, the counts, No email and each listed row', async () => {
     spyOnRequests(fakeApi({ latest: [{ linkSet: true, sync: syncReport() }] }).handler);
     const root = await renderAt('/find');
 
     const report = root.querySelector<HTMLElement>('[data-sync-report]')!;
     expect(text(report)).toMatch(/13 Nov 2026, \d\d:\d\d, Sync now/);
     expect(text(report)).toContain('3 leads created, of which 1 flagged · 2 rows skipped');
+    expect(report.querySelector('[data-sync-no-email]')!.textContent).toBe('No email: 1 row');
     const rows = Array.from(report.querySelectorAll('tbody tr')).map((row) =>
       Array.from(row.querySelectorAll('td')).map((cell) => cell.textContent),
     );
     expect(rows).toEqual([
-      ['3', 'Skipped', 'no email'],
       ['4', 'Skipped', 'already contacted'],
       ['5', 'Created', 'type unknown'],
     ]);
+  });
+
+  it('shows "No email: <n> rows" for more than one row with no email', async () => {
+    const sync = syncReport({ skippedCount: 13, noEmailCount: 12 });
+    spyOnRequests(fakeApi({ latest: [{ linkSet: true, sync }] }).handler);
+    const root = await renderAt('/find');
+
+    expect(root.querySelector('[data-sync-no-email]')!.textContent).toBe('No email: 12 rows');
+  });
+
+  it.each([0, null])('shows no "No email" count when it is %s', async (noEmailCount) => {
+    const sync = syncReport({ skippedCount: 1, noEmailCount });
+    spyOnRequests(fakeApi({ latest: [{ linkSet: true, sync }] }).handler);
+    const root = await renderAt('/find');
+
+    expect(root.querySelector('[data-sync-report]')).not.toBeNull();
+    expect(root.querySelector('[data-sync-no-email]')).toBeNull();
+    expect(text(root.querySelector<HTMLElement>('[data-sync-report]')!)).not.toContain('No email');
   });
 
   it('Daily sync failure shown', async () => {

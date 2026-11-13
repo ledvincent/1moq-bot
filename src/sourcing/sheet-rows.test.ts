@@ -122,13 +122,13 @@ describe('readSheetRows', () => {
     );
   });
 
-  it('reads exactly 2,000 rows below the header', () => {
-    const values = [header, ...Array.from({ length: 2000 }, (_, i) => [`B${i}`])];
-    expect(readSheetRows(values)).toHaveLength(2000);
+  it('reads exactly 5,000 rows below the header', () => {
+    const values = [header, ...Array.from({ length: 5000 }, (_, i) => [`B${i}`])];
+    expect(readSheetRows(values)).toHaveLength(5000);
   });
 
-  it('refuses 2,001 rows below the header', () => {
-    const values = [header, ...Array.from({ length: 2001 }, (_, i) => [`B${i}`])];
-    expect(layoutError(values)).toBe('The sheet has more than 2,000 rows');
+  it('refuses 5,001 rows below the header', () => {
+    const values = [header, ...Array.from({ length: 5001 }, (_, i) => [`B${i}`])];
+    expect(layoutError(values)).toBe('The sheet has more than 5,000 rows');
   });
 });

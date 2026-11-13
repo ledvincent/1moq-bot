@@ -72,8 +72,8 @@ export function syncReport(overrides: Partial<SyncReport> = {}): SyncReport {
     createdCount: 3,
     flaggedCount: 1,
     skippedCount: 2,
+    noEmailCount: 1,
     lines: [
-      { row: 3, outcome: 'skipped', reasons: ['no email'] },
       { row: 4, outcome: 'skipped', reasons: ['already contacted'] },
       { row: 5, outcome: 'created', reasons: ['type unknown'] },
     ],

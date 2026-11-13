@@ -83,7 +83,7 @@ async function readFailure(read: Promise<unknown>): Promise<string> {
 }
 
 describe('GoogleSheetSource', () => {
-  it('reads the first tab as the sheet shows it, rows 1 to 2,002, with the access token', async () => {
+  it('reads the first tab as the sheet shows it, rows 1 to 5,002, with the access token', async () => {
     expect(await source().readFirstTab('sheet-1')).toEqual(firstTab);
     expect(requests).toEqual([
       {
@@ -93,7 +93,7 @@ describe('GoogleSheetSource', () => {
       },
       {
         method: 'GET',
-        url: `/v4/spreadsheets/sheet-1/values/${encodeURIComponent("'Leads'!1:2002")}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`,
+        url: `/v4/spreadsheets/sheet-1/values/${encodeURIComponent("'Leads'!1:5002")}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`,
         authorization: 'Bearer test-token',
       },
     ]);

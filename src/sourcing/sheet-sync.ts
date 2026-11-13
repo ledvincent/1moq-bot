@@ -227,9 +227,12 @@ export async function runSync(
       let created = 0;
       let flagged = 0;
       let skipped = 0;
+      let noEmail = 0;
       const skip = (row: number, reason: string) => {
         skipped += 1;
-        lines.push({ row, outcome: 'skipped', reasons: [reason] });
+        // Counted, not listed: DM-only leads would otherwise fill every report (design D5).
+        if (reason === 'no email') noEmail += 1;
+        else lines.push({ row, outcome: 'skipped', reasons: [reason] });
       };
 
       for (const row of rows) {
@@ -272,6 +275,7 @@ export async function runSync(
           createdCount: created,
           flaggedCount: flagged,
           skippedCount: skipped,
+          noEmailCount: noEmail,
           lines,
         })
         .where(and(eq(sheetSync.id, syncId), eq(sheetSync.status, 'running')))
@@ -361,6 +365,7 @@ export async function latestSync(db: Db) {
       createdCount: sheetSync.createdCount,
       flaggedCount: sheetSync.flaggedCount,
       skippedCount: sheetSync.skippedCount,
+      noEmailCount: sheetSync.noEmailCount,
       lines: sheetSync.lines,
       failure: sheetSync.failure,
     })

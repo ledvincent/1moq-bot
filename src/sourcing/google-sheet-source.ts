@@ -76,7 +76,7 @@ const quotedTitle = (title: string) => `'${title.replace(/'/g, "''")}'`;
 
 /**
  * Reads the first tab of a spreadsheet with two GET requests: the tab list, then the first tab's
- * values, rows 1 to 2,002 (the header, 2,000 rows and one more, so a sheet over the limit shows).
+ * values, rows 1 to 5,002 (the header, 5,000 rows and one more, so a sheet over the limit shows).
  */
 export class GoogleSheetSource implements SheetSource {
   readonly #getToken: TokenProvider | null;

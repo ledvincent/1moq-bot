@@ -211,6 +211,7 @@ describe('sourcing API', () => {
           createdCount: 1,
           flaggedCount: 1,
           skippedCount: 0,
+          noEmailCount: 0,
           lines: [{ row: 2, outcome: 'created', reasons: ['type unknown'] }],
           failure: null,
         },

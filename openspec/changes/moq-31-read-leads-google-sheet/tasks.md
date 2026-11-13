@@ -66,7 +66,7 @@ The scenarios "Same place found twice", "Same business from two sources" and "Re
 - [x] 10.5 Test `Imported lead keeps the row's values` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.6 Test `Changed row leaves its lead unchanged` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.7 Test `Deleted row leaves its lead unchanged` in `src/sourcing/sheet-sync.int.test.ts`
-- [ ] 10.8 Test `Row with no email` in `src/sourcing/sheet-sync.int.test.ts` (now: counted in "No email: 1 row", no line for the row)
+- [x] 10.8 Test `Row with no email` in `src/sourcing/sheet-sync.int.test.ts` (now: counted in "No email: 1 row", no line for the row)
 - [x] 10.9 Test `Row with an invalid email` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.10 Test `Row with no business name` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.11 Test `Several addresses in one cell` in `src/sourcing/sheet-sync.int.test.ts`
@@ -83,12 +83,12 @@ The scenarios "Same place found twice", "Same business from two sources" and "Re
 - [x] 10.22 Test `Bare city name with a much larger namesake` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.23 Test `City that cannot be placed` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.24 Test `City in several time zones` in `src/sourcing/sheet-sync.int.test.ts`
-- [ ] 10.25 Test `Report counts and lists rows` in `src/sourcing/sheet-sync.int.test.ts` and `web/src/pages/find-page.test.tsx` (now: "No email: 1 row", row 3 not listed)
+- [x] 10.25 Test `Report counts and lists rows` in `src/sourcing/sheet-sync.int.test.ts` and `web/src/pages/find-page.test.tsx` (now: "No email: 1 row", row 3 not listed)
 - [x] 10.26 Test `Header-only sheet` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.27 Test `Needed column missing` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.28 Test `Columns in another order` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.29 Test `Only the first tab is read` in `src/sourcing/google-sheet-source.test.ts`
-- [ ] 10.30 Test `Sheet over 5,000 rows` in `src/sourcing/sheet-sync.int.test.ts` (renamed from `Sheet over 2,000 rows`; 5,001 rows refused, exactly 5,000 accepted)
+- [x] 10.30 Test `Sheet over 5,000 rows` in `src/sourcing/sheet-sync.int.test.ts` (renamed from `Sheet over 2,000 rows`; 5,001 rows refused, exactly 5,000 accepted)
 - [x] 10.31 Test `Sheet not shared with the tool` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.32 Test `Sheet link to no sheet` in `src/sourcing/sheet-sync.int.test.ts`
 - [x] 10.33 Test `Google unavailable` in `src/sourcing/sheet-sync.int.test.ts`
@@ -110,7 +110,7 @@ The scenarios "Same place found twice", "Same business from two sources" and "Re
 
 ## 11. Owner decisions of 2026-11-13: limit 5,000, no-email rows counted
 
-- [ ] 11.1 Raise the row limit to 5,000 (design D1 and D5): `src/sourcing/sheet-rows.ts` (limit and the message "The sheet has more than 5,000 rows") and `src/sourcing/google-sheet-source.ts` (rows 1 to 5,002); update their unit tests (5,000 accepted, 5,001 refused, the requested range)
-- [ ] 11.2 Count rows with no email instead of listing them (design D5 "No email in the report"): a count of rows with no email in the `sheet_sync` report (a migration if the report is stored in columns), no report line for a "no email" row, still counted in rows skipped; unit and integration tests
-- [ ] 11.3 Show "No email: <n> rows" ("1 row" for one; nothing when 0) in the Find leads report (`web/src/pages/sheet-sync-section.tsx`, `web/src/api/sheet.ts`); tests in `web/src/pages/find-page.test.tsx`
-- [ ] 11.4 Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm test:container`, and `openspec validate moq-31-read-leads-google-sheet --strict`; all pass
+- [x] 11.1 Raise the row limit to 5,000 (design D1 and D5): `src/sourcing/sheet-rows.ts` (limit and the message "The sheet has more than 5,000 rows") and `src/sourcing/google-sheet-source.ts` (rows 1 to 5,002); update their unit tests (5,000 accepted, 5,001 refused, the requested range)
+- [x] 11.2 Count rows with no email instead of listing them (design D5 "No email in the report"): a count of rows with no email in the `sheet_sync` report (a migration if the report is stored in columns), no report line for a "no email" row, still counted in rows skipped; unit and integration tests
+- [x] 11.3 Show "No email: <n> rows" ("1 row" for one; nothing when 0) in the Find leads report (`web/src/pages/sheet-sync-section.tsx`, `web/src/api/sheet.ts`); tests in `web/src/pages/find-page.test.tsx`
+- [x] 11.4 Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm test:container`, and `openspec validate moq-31-read-leads-google-sheet --strict`; all pass

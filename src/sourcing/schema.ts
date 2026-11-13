@@ -141,6 +141,8 @@ export const sheetSync = pgTable(
     createdCount: integer('created_count'),
     flaggedCount: integer('flagged_count'),
     skippedCount: integer('skipped_count'),
+    // Rows skipped for "no email": counted in skippedCount too, but given no line of their own.
+    noEmailCount: integer('no_email_count'),
     // Row numbers and reasons only: never a name or an address.
     lines: jsonb('lines').$type<SyncReportLine[]>(),
     failure: text('failure'),
@@ -156,7 +158,7 @@ export const sheetSync = pgTable(
   ],
 );
 
-/** One line of a sync report: a skipped, flagged or noted row. */
+/** One line of a sync report: a skipped (other than for "no email"), flagged or noted row. */
 export interface SyncReportLine {
   row: number;
   outcome: 'skipped' | 'created';

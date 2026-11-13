@@ -2,7 +2,7 @@
 // (openspec/specs/lead-sourcing/spec.md, "Sheet layout").
 
 /** The most data rows (below the header) a sync reads. */
-export const MAX_SHEET_ROWS = 2000;
+export const MAX_SHEET_ROWS = 5000;
 
 /** The columns the tool reads, by the key it uses for each. */
 export const sheetColumns = {
@@ -79,7 +79,7 @@ export function readSheetRows(values: string[][]): SheetRow[] {
     throw new SheetLayoutError(missingMessage(missing.map((column) => sheetColumns[column])));
   }
   if (values.length - 1 > MAX_SHEET_ROWS) {
-    throw new SheetLayoutError('The sheet has more than 2,000 rows');
+    throw new SheetLayoutError('The sheet has more than 5,000 rows');
   }
 
   const rows: SheetRow[] = [];

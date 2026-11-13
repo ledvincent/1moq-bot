@@ -15,6 +15,12 @@ import { Table } from '../ui/table.tsx';
 // While a sync runs, Find leads asks for its report this often.
 export const SYNC_POLL_MS = 2000;
 
+// "No email: 1 row", "No email: 12 rows"; nothing when no row lacked an email.
+function noEmailText(count: number | null): string | null {
+  if (!count) return null;
+  return `No email: ${count} ${count === 1 ? 'row' : 'rows'}`;
+}
+
 function Report({ sync }: { sync: SyncReport }) {
   const when = formatDateTime(sync.finishedAt ?? sync.startedAt);
   if (sync.status === 'failed') {
@@ -25,6 +31,7 @@ function Report({ sync }: { sync: SyncReport }) {
     );
   }
   const lines = sync.lines ?? [];
+  const noEmail = noEmailText(sync.noEmailCount);
   return (
     <div data-sync-report="">
       <p>
@@ -34,6 +41,7 @@ function Report({ sync }: { sync: SyncReport }) {
         {sync.createdCount ?? 0} leads created, of which {sync.flaggedCount ?? 0} flagged ·{' '}
         {sync.skippedCount ?? 0} rows skipped
       </p>
+      {noEmail && <p data-sync-no-email="">{noEmail}</p>}
       {lines.length > 0 && (
         <Table
           head={['Row', 'Result', 'Reasons']}

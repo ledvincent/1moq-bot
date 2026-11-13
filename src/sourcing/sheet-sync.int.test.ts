@@ -356,10 +356,15 @@ describe('sheet sync', () => {
       setSheet([row({ email: '' }), row({ email: '   ' })]);
       const report = await syncNow();
       expect(await leads()).toEqual([]);
-      expect(lines(report)).toEqual([
-        [2, 'no email'],
-        [3, 'no email'],
-      ]);
+      expect(report).toMatchObject({ skippedCount: 2, noEmailCount: 2 });
+      expect(report.lines).toEqual([]);
+    });
+
+    it('Row with no email: a single one counts 1, without a line for it', async () => {
+      setSheet([row({ email: '' }), row({ business: 'Other', email: 'other@other.example' })]);
+      const report = await syncNow();
+      expect(report).toMatchObject({ createdCount: 1, skippedCount: 1, noEmailCount: 1 });
+      expect(lines(report)).toEqual([]);
     });
 
     it('Row with an invalid email', async () => {
@@ -495,10 +500,8 @@ describe('sheet sync', () => {
         row({ business: '', emailSent: 'Yes' }),
       ]);
       const report = await syncNow();
-      expect(lines(report)).toEqual([
-        [2, 'no email'],
-        [3, 'no business name'],
-      ]);
+      expect(report.noEmailCount).toBe(1);
+      expect(lines(report)).toEqual([[3, 'no business name']]);
     });
   });
 
@@ -670,10 +673,10 @@ describe('sheet sync', () => {
         createdCount: 3,
         flaggedCount: 1,
         skippedCount: 2,
+        noEmailCount: 1,
         failure: null,
       });
       expect(report.lines).toEqual([
-        { row: 3, outcome: 'skipped', reasons: ['no email'] },
         { row: 4, outcome: 'skipped', reasons: ['already contacted'] },
         { row: 5, outcome: 'created', reasons: ['type unknown'] },
       ]);
@@ -690,6 +693,7 @@ describe('sheet sync', () => {
         createdCount: 0,
         flaggedCount: 0,
         skippedCount: 0,
+        noEmailCount: 0,
         lines: [],
         failure: null,
       });
@@ -716,6 +720,7 @@ describe('sheet sync', () => {
         createdCount: now.createdCount,
         flaggedCount: now.flaggedCount,
         skippedCount: now.skippedCount,
+        noEmailCount: now.noEmailCount,
         lines: now.lines,
       });
       expect(
@@ -794,18 +799,20 @@ describe('sheet sync', () => {
       expect(comparable(reordered)).toEqual(comparable(usual));
     });
 
-    it('Sheet over 2,000 rows', async () => {
-      setSheet(validRows(2001));
+    it('Sheet over 5,000 rows', async () => {
+      setSheet(validRows(5001));
       const report = await syncNow();
       expect(await leads()).toEqual([]);
       expect(report.status).toBe('failed');
-      expect(report.failure).toBe('The sheet has more than 2,000 rows');
+      expect(report.failure).toBe('The sheet has more than 5,000 rows');
     });
 
-    it('imports a sheet of exactly 2,000 rows', async () => {
-      setSheet(validRows(2000));
+    // About 40,000 statements in one transaction: about a minute against a local Docker database,
+    // past the suite's 60-second default.
+    it('imports a sheet of exactly 5,000 rows', { timeout: 300_000 }, async () => {
+      setSheet(validRows(5000));
       const report = await syncNow();
-      expect(report.createdCount).toBe(2000);
+      expect(report.createdCount).toBe(5000);
     });
   });
 
