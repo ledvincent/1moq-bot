@@ -37,7 +37,7 @@ bash deploy/backup/backup.sh
 
 The restore refuses a database that already has tables, so it cannot overwrite a live one.
 
-1. Point the variables to a fresh stack: a new `COMPOSE_PROJECT_NAME` (for example `export COMPOSE_PROJECT_NAME=moq-restore`) or, for the same project, remove the old data first with `moq_compose down -v`. Keep `app.env` and `release.env` in `$MOQ_ETC`.
+1. Point the variables to a fresh stack: a new `COMPOSE_PROJECT_NAME` (for example `export COMPOSE_PROJECT_NAME=moq-restore`) or, for the same project, remove the old data first with `moq_compose down -v`. Keep `app.env` and `release.env` in `$MOQ_ETC`. The restored database needs the same `MATCH_HASH_KEY` in `app.env` as the one it was dumped from: with another key, no do-not-contact or seen-business hash matches any more ([lead tables](/decisions/MOQ-31-lead-tables.md)), so keep a copy of that key apart from the dumps.
 2. Record the counts of the source database before, if it still runs: `moq_compose exec -T postgres psql -U moq -d moq -tA -F ' ' < deploy/backup/table-counts.sql > counts-before.txt`
 3. Restore: `bash deploy/backup/restore.sh <dump file> ~/1moq-keys/backup.key`. It starts PostgreSQL, decrypts the dump on this machine into `pg_restore`, starts the whole stack and waits for the app to be healthy, then prints `restore: ok`.
 4. Compare: run the same `table-counts.sql` command into `counts-after.txt`, then `diff counts-before.txt counts-after.txt` shows nothing.

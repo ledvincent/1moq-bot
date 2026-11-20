@@ -22,7 +22,7 @@ Each [lead](/domain/lead.md) has exactly one current status that follows its out
 | Status | What puts a lead there |
 |---|---|
 | found | A Google Maps search or a pasted link creates it |
-| waiting for review | Research and qualification are done |
+| waiting for review | Research and qualification are done; or a sheet sync imports a row of the owner's Google Sheet: such a lead skips research and qualification and has no fit level (the sheet already holds the owner's judgement) |
 | approved | The owner swipes right (or approves a lead rejected earlier, which is then handled like any new approval) |
 | rejected | The owner swipes left, or withdraws an approval: every email not yet sent is cancelled |
 | to contact by hand | The owner approves a lead with no email address: no email is planned, it is listed for the owner |

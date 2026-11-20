@@ -1,6 +1,17 @@
 # Knowledge log
 
 ## 2026-11-20
+* **Added**: [The owner's Google Sheet is a lead source, read-only through the Sheets API with a service account](/decisions/MOQ-31-google-sheet-lead-source.md) - MOQ-31 decision D1.
+* **Added**: [Leads live in lead, lead_email, lead_fact and lead_source, and deleted or opted-out addresses only as keyed hashes](/decisions/MOQ-31-lead-tables.md) - MOQ-31 decision D2.
+* **Added**: [A free-text city is placed in a time zone with an offline GeoNames list, never a geocoding API or the AI](/decisions/MOQ-31-offline-place-lookup.md) - MOQ-31 decision D3.
+* **Added**: [Google Sheets](/integrations/google-sheets.md) - a new processor: the owner's lead sheet, its setup, errors and personal data, by MOQ-31.
+* **Updated**: [lead](/data/lead.md) - the tables MOQ-31 built: lead, lead_email, lead_fact, lead_source, sheet_sync, seen_business, do_not_contact.
+* **Updated**: [Lead](/domain/lead.md) - the email address as a match key and the Google Sheet source, by MOQ-31.
+* **Updated**: [Lead status](/domain/lead-status.md) - sheet leads go straight to waiting for review, by MOQ-31.
+* **Updated**: [Do-not-contact list](/domain/do-not-contact-list.md) - the email normalisation rule and the keyed hash, set by MOQ-31.
+* **Updated**: [Architecture overview](/architecture/overview.md) - the Google Sheets API, the sheet.sync jobs and the sheet in the data flow, by MOQ-31.
+* **Updated**: [Tech stack](/architecture/tech-stack.md) - google-auth-library 11.3.4 and the GeoNames place list, by MOQ-31.
+* **Updated**: [Back up and restore the production database](/runbooks/backup-and-restore.md) - a restore needs the same MATCH_HASH_KEY, by MOQ-31.
 * **Updated**: [Jira](/integrations/jira.md) - kit 3.3.4: added the Path label row; the team now uses the kit labels, by /dirox-project:set-up-repo.
 * **Updated**: [QC](/integrations/qc.md) - kit 3.3.4 command names; the convention now points to the decision that the review gates block merges, by /dirox-project:set-up-repo.
 

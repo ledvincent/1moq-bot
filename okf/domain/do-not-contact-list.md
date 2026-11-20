@@ -27,7 +27,8 @@ What puts an address on the list:
 - the owner erases a lead on request.
 
 How it is kept:
-- as a keyed hash (HMAC with a server secret) of the normalised address, never readably ([personal data handling](/decisions/MOQ-1-personal-data-handling.md)); how addresses are normalised is set when the list is built (row 17);
+- as a keyed hash (HMAC-SHA256 under the secret `MATCH_HASH_KEY`, over `email:<normalised address>`) in the `do_not_contact` table, never readably ([personal data handling](/decisions/MOQ-1-personal-data-handling.md), [lead tables](/decisions/MOQ-31-lead-tables.md)). An address is normalised by trimming it, dropping a leading "mailto:" (any case) and lower-casing it: the same rule matches leads by email (`normaliseEmail` in `src/compliance/`, set by MOQ-31);
+- checked by a sheet sync, which imports no row whose address is on the list;
 - for good: never emptied, never swept by retention, never deleted with a lead;
 - checked by the [send gate](/decisions/MOQ-1-send-gate.md) right before every email.
 

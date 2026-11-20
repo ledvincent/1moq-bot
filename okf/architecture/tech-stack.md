@@ -28,6 +28,8 @@ Exact pins as in `package.json`.
 | Page tests | happy-dom (dev), the DOM for the `web` Vitest project, no testing library ([decision](/decisions/MOQ-30-page-tests-with-happy-dom.md)) | 21.0.4 |
 | Lint and format | ESLint, typescript-eslint, `@eslint/js`, `eslint-plugin-react-hooks`, `eslint-config-prettier`; Prettier | 10.13.0, 8.72.0, 10.0.1, 7.1.1, 10.1.8; 3.9.10 |
 | IANA time zones | Luxon, `@types/luxon` | 3.7.2, 3.7.6 |
+| Place list | GeoNames `cities15000`, `countryInfo` and `timeZones` (CC BY 4.0), shipped as `src/platform/places/data/*.tsv`, built by `scripts/build-places.mjs` ([offline place lookup](/decisions/MOQ-31-offline-place-lookup.md)) | downloaded 2026-11-13 |
+| Google access token | `google-auth-library` (Google's official Node.js auth library), service account, read-only Sheets scope ([Google Sheets](/integrations/google-sheets.md)) | 11.3.4 |
 | Types | `@types/node` (matches Node 24), `@types/react`, `@types/react-dom`, `@types/pg` | 24.19.2, 19.3.0, 19.3.0, 8.23.1 |
 | AI | Anthropic's official TypeScript SDK; model Claude Haiku 5.5 (`claude-haiku-5-5`) | SDK version in row 8 |
 | Packaging | One container image (`deploy/Dockerfile`) running the web server and the job worker in one process, migrations at start (can be split into two processes later without code changes) | base `node:24.21-bookworm-slim` |
