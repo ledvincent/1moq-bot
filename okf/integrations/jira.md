@@ -47,11 +47,12 @@ The workflow has only `To Do`, `In Progress` and `Done`.
 | Feature | label `cap:<feature>` | the feature name, as in `openspec/specs/`, or `tooling` for work outside the specs |
 | Size | label `size:<value>` | `trivial`, `normal`, `large` (`big`, written before 3.0.0, reads as `large`) |
 | Difficulty | label `difficulty:<value>` | `routine`, `tricky` |
+| Path | label `path:<value>` | `simple`, `full` |
 
 ## Fields
 - Story points: none (no story points field in the project; points come from the size labels, trivial 1, normal 3, large 8)
 
 ## Conventions
-- Labels or components the team uses: none yet (no components, no labels on tickets)
+- Labels or components the team uses: only the kit's labels above (`src:`, `cap:`, `size:`, `difficulty:`); no components
 - Review turnaround: 2 working days
 - Started before the baseline: none

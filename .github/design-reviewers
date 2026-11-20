@@ -1,5 +1,5 @@
-# Design reviewers (the BA, the Architect): the GitHub users whose approval passes the design gate.
-# A big change needs one on its draft PR, given on the proposal before any code is committed.
+# Design reviewers (the BA and the Architect): the GitHub users who approve the project's plan, the pull
+# request /dirox-project:plan-project opens, before it writes the foundation. Tickets need no design approval.
 # One GitHub username per line, without the @ (for example jane-ba). Lines starting with # are ignored.
-# The Dirox PR checks (.github/scripts/approval.mjs) read this file from the base branch.
+# /dirox-project:set-up-repo also names them on the okf/ lines of CODEOWNERS. No CI check reads this file.
 ledvincent

@@ -5,4 +5,4 @@
 * [Google Maps](google-maps.md) - Finding businesses by type and city, their place details and photos; the Google Places API is the recommended source (not decided, row 4), and Google's terms limit how long Places content other than place IDs is stored
 * [Instagram](instagram.md) - Read-only Instagram facts for leads whose handle is known (followers, bio, website, recent posts) through the Graph API's business discovery (recommended, not decided, row 7); the company's own account is never signed in to or automated
 * [Jira](jira.md) - How this project's Jira is set up - project key, where acceptance criteria live, issue types, the status for each stage, the dependency link type and the ticket labels; read by /dirox-core:jira and the other commands
-* [QC](qc.md) - How QC gets a build of each PR to test - a preview, or the commands to run it locally; read by /dirox-dev:implement (the PR's "How to test"), /dirox-core:next and QC
+* [QC](qc.md) - How QC gets a build of each PR to test - a preview, or the commands to run it locally; read by /dirox-ticket:build-ticket (the PR's "How to test"), /dirox-core:show-next-step and QC
