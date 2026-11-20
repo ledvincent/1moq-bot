@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Pages show sample data
-Until a page, or a section of a page, is connected to its feature, it SHALL show its layout filled with invented sample data that uses the tool's domain terms, and a visible "Sample data" marker. A page wholly connected SHALL show no marker; on a page mixing real and sample data, the marker SHALL mark each section still on sample data and no connected section. Sample data SHALL name no real business, person or email address.
+Until a page, or a section of a page, is connected to its feature, it SHALL show its layout filled with invented sample data in the tool's domain terms, and a visible "Sample data" marker. A wholly connected page SHALL show no marker; on a page mixing real and sample data, only the sections still on sample data SHALL show it. Sample data SHALL name no real business, person or email address.
 Knowledge: `okf/domain/lead-status.md`, `okf/domain/client-types.md`, `okf/domain/outreach-sequence.md`
 
 #### Scenario: Every page shows the sample data marker
