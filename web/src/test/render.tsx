@@ -32,7 +32,15 @@ export async function renderAt(path: string, ui: ReactNode = <App />): Promise<H
   const root = createRoot(container);
   mounted.push({ root, container });
   await act(async () => root.render(ui));
+  await settle();
   return container;
+}
+
+// Lets the page's pending API answers (stubbed, so microtasks only) reach the screen.
+export async function settle(): Promise<void> {
+  await act(async () => {
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+  });
 }
 
 export async function click(element: Element, init: MouseEventInit = {}): Promise<MouseEvent> {
@@ -40,12 +48,18 @@ export async function click(element: Element, init: MouseEventInit = {}): Promis
   await act(async () => {
     element.dispatchEvent(event);
   });
+  await settle();
   return event;
 }
 
-// Spies on every way the page could reach the server.
-export function spyOnRequests() {
-  const fetchSpy = vi.fn(() => Promise.reject(new Error('fetch called in a test')));
+export type FetchHandler = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+// Spies on every way the page could reach the server; `answer` serves fetch (by default every
+// request fails).
+export function spyOnRequests(answer?: FetchHandler) {
+  const fetchSpy = vi.fn<FetchHandler>(
+    answer ?? (() => Promise.reject(new Error('fetch called in a test'))),
+  );
   vi.stubGlobal('fetch', fetchSpy);
   const xhrSpy = vi.spyOn(XMLHttpRequest.prototype, 'send').mockImplementation(() => undefined);
   return {

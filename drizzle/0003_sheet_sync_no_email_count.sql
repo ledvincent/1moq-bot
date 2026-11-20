@@ -1,0 +1,1 @@
+ALTER TABLE "sheet_sync" ADD COLUMN "no_email_count" integer;

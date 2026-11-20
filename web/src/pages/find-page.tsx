@@ -1,6 +1,8 @@
 import { NotConnectedForm } from '../ui/not-connected-action.tsx';
 import { PageHeader } from '../ui/page-header.tsx';
+import { SectionHeading } from '../ui/section-heading.tsx';
 import { Table } from '../ui/table.tsx';
+import { SheetSyncSection } from './sheet-sync-section.tsx';
 
 const recentSearches = [
   ['Coffee roasters', 'Brighton, United Kingdom', '20 Oct 2026', '14 leads'],
@@ -8,13 +10,15 @@ const recentSearches = [
   ['Cafés', 'Lyon, France', '1 Nov 2026', '11 leads'],
 ];
 
+// The Google Sheet section is real; the others are still on sample data and say so.
 export function FindPage() {
   return (
     <>
-      <PageHeader title="Find leads">
-        Search Google Maps, or add one business from a link.
+      <PageHeader title="Find leads" sample={false}>
+        Sync the Google Sheet, search Google Maps, or add one business from a link.
       </PageHeader>
-      <h2>Search Google Maps</h2>
+      <SheetSyncSection />
+      <SectionHeading title="Search Google Maps" sample />
       <NotConnectedForm action="search" className="form">
         <label>
           Business type
@@ -25,9 +29,9 @@ export function FindPage() {
           <input name="city" defaultValue="Bristol" />
         </label>
       </NotConnectedForm>
-      <h2>Recent searches</h2>
+      <SectionHeading title="Recent searches" sample />
       <Table head={['Business type', 'City', 'Date', 'Found']} rows={recentSearches} />
-      <h2>Add a lead from a link</h2>
+      <SectionHeading title="Add a lead from a link" sample />
       <NotConnectedForm action="addLead" className="form">
         <label>
           Instagram or website link

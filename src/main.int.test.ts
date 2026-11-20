@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
+import { TEST_MATCH_HASH_KEY, testConfig } from '../tests/helpers/test-config.ts';
 import { createTestDatabase, type TestDatabase } from '../tests/helpers/test-db.ts';
 import { start } from './main.ts';
 
@@ -22,21 +23,12 @@ describe('service start', () => {
   it('Local start serves the UI shell: one start() runs the web server and the worker', async () => {
     let ran!: (value: string) => void;
     const jobRan = new Promise<string>((resolve) => (ran = resolve));
-    const service = await start(
-      {
-        databaseUrl: testDb.url,
-        port: 0,
-        host: '127.0.0.1',
-        webDir: inject('webDir'),
-        dryRun: true,
-      },
-      {
-        logger: false,
-        queue: { pollingIntervalSeconds: 0.5 },
-        registerJobs: (queue) =>
-          queue.registerJob<{ id: string }>('test.shell', async (data) => ran(data.id)),
-      },
-    );
+    const service = await start(testConfig(testDb.url, inject('webDir')), {
+      logger: false,
+      queue: { pollingIntervalSeconds: 0.5 },
+      registerJobs: (queue) =>
+        queue.registerJob<{ id: string }>('test.shell', async (data) => ran(data.id)),
+    });
     try {
       // The worker in this process runs a queued job.
       await service.queue.enqueue('test.shell', { id: 'from-start' });
@@ -134,6 +126,7 @@ describe('service start with secret settings', () => {
       ...serviceEnv(databaseUrl),
       ANTHROPIC_API_KEY: `${marker}-api`,
       MAILBOX_PASSWORD: `${marker}-mailbox`,
+      MATCH_HASH_KEY: `${marker}-match-hash-key-test-only`,
     });
 
     expect(run.listening).toBe(true);
@@ -144,8 +137,14 @@ describe('service start with secret settings', () => {
 
 // The environment of a spawned service: no value inherited from the developer's .env.
 function serviceEnv(databaseUrl: string): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { ...process.env, DATABASE_URL: databaseUrl, PORT: '0' };
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    DATABASE_URL: databaseUrl,
+    PORT: '0',
+    MATCH_HASH_KEY: TEST_MATCH_HASH_KEY,
+  };
   delete env.DRY_RUN;
+  delete env.GOOGLE_SERVICE_ACCOUNT_KEY;
   env.WEB_DIR = inject('webDir');
   return env;
 }

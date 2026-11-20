@@ -17,7 +17,14 @@ beforeAll(async () => {
   mkdirSync(path.join(webDir, 'assets'));
   writeFileSync(path.join(webDir, 'assets', 'app.js'), 'console.log(1)');
   const pool = { query: async () => ({ rows: [{ '?column?': 1 }] }) } as unknown as pg.Pool;
-  app = await buildApp({ pool, webDir, logger: false });
+  app = await buildApp({
+    pool,
+    webDir,
+    logger: false,
+    registerRoutes: (routes) => {
+      routes.get('/api/probe', async () => ({ probe: true }));
+    },
+  });
 });
 
 afterAll(async () => {
@@ -80,6 +87,14 @@ describe('page addresses', () => {
     const health = await app.inject({ method: 'GET', url: '/health' });
     expect(health.statusCode).toBe(200);
     expect(health.json()).toEqual({ status: 'ok' });
+  });
+
+  it('answers an /api route a module registered, and keeps the plain 404 beside it', async () => {
+    const response = await app.inject({ method: 'GET', url: '/api/probe' });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ probe: true });
+    await expectPlain404('/api/probe/other');
+    await expectPlain404('/api/probe', 'POST');
   });
 
   it('still serves static files', async () => {

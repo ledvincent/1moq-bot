@@ -35,7 +35,7 @@ One module per capability, so a ticket stays inside one folder. Folder names and
 
 | Module | Capability | Does |
 |---|---|---|
-| `sourcing` | lead-sourcing | Source adapters (Google Maps, Instagram, manual link); matching a business to an existing [lead](/domain/lead.md) |
+| `sourcing` | lead-sourcing | Source adapters (Google Sheet built by MOQ-31; Google Maps, Instagram, manual link later); matching a business to an existing [lead](/domain/lead.md); the lead tables and, for now, the leads API |
 | `enrichment` | lead-enrichment | Website reader, Instagram profile, email finder (and the optional lookup service), AI profile, language, time zone |
 | `qualification` | lead-qualification | [Client type](/domain/client-types.md), the five [fit rules](/domain/qualification-rules.md), fit level, [active markets](/domain/markets.md) |
 | `review` | lead-review | Review queue and order, decisions, card data, pictures |
@@ -45,10 +45,11 @@ One module per capability, so a ticket stays inside one folder. Folder names and
 | `compliance` | outreach-compliance | Footer, unsubscribe tokens and page, [do-not-contact list](/domain/do-not-contact-list.md), retention sweep, erase and export |
 | `tracking` | outreach-tracking | [Lead status](/domain/lead-status.md), history, results |
 | `access` | user-access | Sign-in, sessions, web app manifest and icon |
-| `platform` | (none) | Config and secrets, database and migrations, job queue, AI client, safe HTTP client, settings, audit log |
+| `platform` | (none) | Config and secrets, database and migrations, job queue (and its schedules), AI client, safe HTTP client, settings, audit log, keyed hashes, client type names, the offline place list (`placeTimeZone`) |
 
 ## Data flow
 
+0. The owner's Google Sheet: Sync now, or the daily `sheet.sync.daily` schedule at 06:00 Asia/Ho_Chi_Minh, runs a `sheet.sync` job that reads the first tab and, in one transaction, matches each valid row to a lead or creates one straight in "waiting for review", with no fit level (steps 2 and 3 skipped). One sync runs at a time ([Google Sheet lead source](/decisions/MOQ-31-google-sheet-lead-source.md)).
 1. The owner starts a Google Maps search or pastes a link. A `search.run` job calls the source adapter; each business is matched to an existing lead or creates one (status "found").
 2. A `lead.enrich` job per new lead: website reader, then Instagram profile, then (if chosen, row 9) the lookup service, then the AI profile; language and time zone are set.
 3. A `lead.qualify` job: client type (AI), the five rules (code), fit level, market flag. Status "waiting for review".
@@ -64,7 +65,7 @@ One module per capability, so a ticket stays inside one folder. Folder names and
 - **UI pages** (signed in), fixed by [the page map](/decisions/MOQ-30-page-map-and-addresses.md), in menu order: Overview `/` (home), Find leads `/find`, Review `/review`, Leads `/leads` and `/leads/:id`, Emails `/emails`, Templates `/templates`, Results `/results`, Settings `/settings`. There is no `/review` home and no `/to-do` page: leads to contact by hand and Instagram DMs due are a section of Emails. MOQ-4 adds `/sign-in` and `/setup` outside the menu. Any other address shows "Page not found"; the server answers `index.html` for a GET or HEAD outside `/api` and `/u`. The pages are built in [the UI style](/architecture/ui-style.md); which ticket connects each action is in `web/src/app/connected-by.ts`.
 - **Public** (no sign-in): `GET /u/:token` shows the unsubscribe page with a confirm button (mail scanners open links, so a GET never opts out); `POST /u/:token` opts out, for the button and for one-click unsubscribe from mail apps. `GET /health` for the host.
 - **JSON API** under `/api/*` (signed in), listed in the kickoff design.
-- **Jobs** (PostgreSQL-backed queue): `search.run`, `lead.enrich`, `lead.qualify`, `email.write`, `send.tick` (every 5 minutes), `inbox.poll` (every 5 minutes and at the start of each `send.tick`), `retention.sweep` (daily).
+- **Jobs** (PostgreSQL-backed queue): `sheet.sync` (Sync now) and `sheet.sync.daily` (06:00 Asia/Ho_Chi_Minh), built by MOQ-31; `search.run`, `lead.enrich`, `lead.qualify`, `email.write`, `send.tick` (every 5 minutes), `inbox.poll` (every 5 minutes and at the start of each `send.tick`), `retention.sweep` (daily).
 
 ## External services
 
@@ -74,6 +75,7 @@ Each one is a data processor to list for GDPR ([personal data handling](/decisio
 |---|---|---|---|
 | Small EU server (VPS) | Runs the container and PostgreSQL | Decided ([D1](/decisions/MOQ-1-cloud-web-service.md), [D3](/decisions/MOQ-1-postgresql-store-and-queue.md)); provider Hetzner Cloud (EU) chosen, not bought, connected in MOQ-29 | below |
 | PostgreSQL, same server | All data and the job queue | Decided (D3) | [lead](/data/lead.md), [outbound message](/data/outbound-message.md) |
+| Google Sheets API v4 | Reading the owner's lead sheet, read-only, with a service account | Decided ([MOQ-31](/decisions/MOQ-31-google-sheet-lead-source.md)); built | [Google Sheets](/integrations/google-sheets.md) |
 | Google Places API | Search, place details, photos | Recommended, not decided (open question 3, row 4) | [Google Maps](/integrations/google-maps.md) |
 | Instagram Graph API, business discovery | Profile facts by handle | Recommended, not decided (open question 4, row 7) | [Instagram](/integrations/instagram.md) |
 | Lead websites | Email, links, shop pages, language | Own polite reader ([source policy](/decisions/MOQ-1-lead-source-policy.md)); row 6 | - |
@@ -105,6 +107,7 @@ Each one is a data processor to list for GDPR ([personal data handling](/decisio
 - [Lead sources only through official or provider APIs, never the company's Instagram account](/decisions/MOQ-1-lead-source-policy.md)
 - [Claude through the Anthropic API profiles, classifies and writes](/decisions/MOQ-1-claude-for-ai.md)
 - [Personal data: EU hosting, minimal data, hashed do-not-contact list, retention](/decisions/MOQ-1-personal-data-handling.md)
+- Lead data (MOQ-31): [Google Sheet lead source](/decisions/MOQ-31-google-sheet-lead-source.md), [lead tables](/decisions/MOQ-31-lead-tables.md), [offline place lookup](/decisions/MOQ-31-offline-place-lookup.md)
 - Deployment (MOQ-3): [settings and secrets](/decisions/MOQ-3-settings-and-secrets.md), [Caddy HTTPS proxy](/decisions/MOQ-3-caddy-https-proxy.md), [encrypted backups](/decisions/MOQ-3-encrypted-backups-with-age.md), [release by image tag](/decisions/MOQ-3-release-by-image-tag.md)
 
 The choices left to tickets (hosting provider, libraries, sign-in method, data sources, mailbox protocol, limits, retention periods) are listed in the kickoff design, "Decided later, in their rows". Each ticket records its own.

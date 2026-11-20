@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link } from './app/link.tsx';
 import { usePathname } from './app/navigation.ts';
-import { matchRoute, pages, type PageKey } from './app/routes.ts';
+import { matchRoute, pages, type PageKey, type Route } from './app/routes.ts';
 import { EmailsPage } from './pages/emails-page.tsx';
 import { FindPage } from './pages/find-page.tsx';
 import { LeadPage } from './pages/lead-page.tsx';
@@ -12,7 +12,7 @@ import { ResultsPage } from './pages/results-page.tsx';
 import { ReviewPage } from './pages/review-page.tsx';
 import { SettingsPage } from './pages/settings-page.tsx';
 import { TemplatesPage } from './pages/templates-page.tsx';
-import { findLead } from './sample/leads.ts';
+import { useLead, type LeadLoad } from './pages/use-lead.ts';
 import { NotConnectedProvider } from './ui/not-connected-action.tsx';
 
 const APP_NAME = '1moq-bot';
@@ -28,23 +28,47 @@ const pageComponents: Record<PageKey, () => ReactNode> = {
   settings: SettingsPage,
 };
 
-function resolve(pathname: string): { title: string; menu: PageKey | null; content: ReactNode } {
-  const route = matchRoute(pathname);
+function resolve(
+  route: Route,
+  lead: LeadLoad | null,
+): { title: string; menu: PageKey | null; content: ReactNode } {
   if (route.kind === 'page') {
     const Page = pageComponents[route.page];
     const label = pages.find((page) => page.key === route.page)!.label;
     return { title: label, menu: route.page, content: <Page /> };
   }
-  if (route.kind === 'lead') {
-    const lead = findLead(route.id);
-    if (lead) return { title: lead.name, menu: 'leads', content: <LeadPage lead={lead} /> };
+  if (route.kind === 'lead' && lead) {
+    switch (lead.kind) {
+      case 'found':
+        return { title: lead.lead.name, menu: 'leads', content: <LeadPage lead={lead.lead} /> };
+      case 'loading':
+        return {
+          title: 'Lead',
+          menu: 'leads',
+          content: <p className="muted">Loading the lead…</p>,
+        };
+      case 'error':
+        return {
+          title: 'Lead',
+          menu: 'leads',
+          content: (
+            <p className="alert" role="alert">
+              {lead.message}
+            </p>
+          ),
+        };
+      case 'not-found':
+        break;
+    }
   }
   return { title: 'Page not found', menu: null, content: <NotFoundPage /> };
 }
 
 export function App() {
   const pathname = usePathname();
-  const { title, menu, content } = resolve(pathname);
+  const route = matchRoute(pathname);
+  const lead = useLead(route.kind === 'lead' ? route.id : null);
+  const { title, menu, content } = resolve(route, lead);
 
   useEffect(() => {
     document.title = `${title} · ${APP_NAME}`;

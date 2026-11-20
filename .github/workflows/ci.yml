@@ -42,3 +42,5 @@ jobs:
         run: pnpm test
         env:
           TEST_DATABASE_URL: postgres://moq:moq@localhost:5432/postgres
+          # Test-only value, not a secret: the real key lives only in the server's app.env.
+          MATCH_HASH_KEY: ci-test-only-match-hash-key-not-a-secret-0123456789

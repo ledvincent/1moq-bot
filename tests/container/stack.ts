@@ -26,6 +26,8 @@ const stackSettings = [
   'IMAGE_TAG',
   'DRY_RUN',
   'DATABASE_URL',
+  'MATCH_HASH_KEY',
+  'GOOGLE_SERVICE_ACCOUNT_KEY',
   'BACKUP_RECIPIENT',
 ];
 
@@ -82,6 +84,7 @@ export async function createStack(): Promise<Stack> {
       `POSTGRES_PASSWORD=${randomBytes(32).toString('hex')}`,
       'APP_DOMAIN=localhost',
       'ACME_EMAIL=moq-test@localhost',
+      `MATCH_HASH_KEY=${randomBytes(32).toString('hex')}`,
       '',
     ].join('\n'),
   );

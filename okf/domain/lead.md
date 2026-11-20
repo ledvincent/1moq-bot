@@ -1,7 +1,7 @@
 ---
 type: Glossary Term
 title: Lead
-description: A business that might order custom merch from 1moqcustom, never a person; one lead per business whichever source found it, matched by its map place, Instagram handle or website domain
+description: A business that might order custom merch from 1moqcustom, never a person; one lead per business whichever source found it, matched by its email address, map place, Instagram handle or website domain
 owner: vincent.ledreau@dirox.net
 status: stable
 tags: [sourcing, kickoff]
@@ -21,8 +21,8 @@ A lead is a business that might order small runs of custom clothing or accessori
 
 ## Rules
 
-- **Sources**: "Google Maps" (a map search), "Instagram" (a pasted profile link or handle) or "Manual" (a pasted website). A lead keeps every source and search it was found in.
-- **Match keys**: the map place ID, the Instagram handle and the website domain, each unique across leads when set. A business found again by any of them is the same lead; its status and the owner's decision stay as they were. Which domains do not count as a website (link-in-bio pages, social sites) is set in row 4.
+- **Sources**: "Google Sheet" (a row of the owner's sheet, [Google Sheets](/integrations/google-sheets.md)), "Google Maps" (a map search), "Instagram" (a pasted profile link or handle) or "Manual" (a pasted website). A lead keeps every source and search it was found in.
+- **Match keys**: the email address (normalised: trimmed, without "mailto:", lower-cased), the map place ID, the Instagram handle and the website domain, each unique across leads when set. A business found again by any of them is the same lead; it gets the new source, and its status and the owner's decision stay as they were. The domains that do not count as a website (link-in-bio pages, social sites) are listed in `src/sourcing/not-website-domains.ts`, started by MOQ-31; MOQ-5 extends it.
 - **Facts**: each researched fact keeps its source; an unknown fact stays unknown, never guessed.
 - **Owner's overrides**: client type, language and time zone set by the owner win over research, which never overwrites them.
 - **After deletion**: the match keys are kept as keyed hashes with the last decision, so a deleted lead is not offered again.

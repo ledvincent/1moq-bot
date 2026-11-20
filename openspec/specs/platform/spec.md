@@ -194,13 +194,17 @@ Knowledge: `okf/architecture/overview.md`
 - **THEN** the menu shows the eight items, each opens its page, and only the item of the page that is open is marked
 
 ### Requirement: Pages show sample data
-Until a page is connected to its feature, it SHALL show its layout filled with invented sample data that uses the tool's domain terms, and a visible "Sample data" marker. Sample data SHALL name no real business, person or email address.
+Until a page, or a section of a page, is connected to its feature, it SHALL show its layout filled with invented sample data in the tool's domain terms, and a visible "Sample data" marker. A wholly connected page SHALL show no marker; on a page mixing real and sample data, only the sections still on sample data SHALL show it. Sample data SHALL name no real business, person or email address.
 Knowledge: `okf/domain/lead-status.md`, `okf/domain/client-types.md`, `okf/domain/outreach-sequence.md`
 
 #### Scenario: Every page shows the sample data marker
-- **WHEN** any of the eight pages, or a lead's page, opens
-- **THEN** it shows its layout filled with sample data
-- **AND** a "Sample data" marker is visible on it
+- **WHEN** Overview, Review, Emails, Templates or Results opens, or Find leads or Settings opens
+- **THEN** each page or section still on sample data shows its layout filled with sample data and a visible "Sample data" marker
+- **AND** the Google Sheet sections of Find leads and Settings show no marker
+
+#### Scenario: Connected pages show no marker
+- **WHEN** Leads or a lead's page opens
+- **THEN** it shows the real leads and no "Sample data" marker
 
 ### Requirement: Actions not connected yet change nothing
 An action that needs a feature not built yet (search, add a link, approve, reject, Send now, pause, save, and the like) SHALL search, save and send nothing and SHALL make no request to the server. Using it SHALL show a message naming the ticket that will connect it.

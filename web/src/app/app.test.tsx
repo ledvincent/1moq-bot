@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { byText, click, renderAt } from '../test/render.tsx';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { fakeApi } from '../test/fake-api.ts';
+import { byText, click, renderAt, spyOnRequests } from '../test/render.tsx';
 
 const menu = [
   ['Overview', '/'],
@@ -23,6 +24,11 @@ function marked(root: HTMLElement) {
 }
 
 describe('App', () => {
+  // The pages that read the API get the fake one's answers; lead-01 is its lead.
+  beforeEach(() => {
+    spyOnRequests(fakeApi().handler);
+  });
+
   it('mounts and names the tool', async () => {
     const root = await renderAt('/');
     expect(root.querySelector('a.brand')!.getAttribute('aria-label')).toBe('1moq-bot');

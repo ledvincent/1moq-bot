@@ -8,6 +8,27 @@
       "when": 1792935331124,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794547748044,
+      "tag": "0001_lead_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794547756366,
+      "tag": "0002_do_not_contact_never_deleted",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794558510138,
+      "tag": "0003_sheet_sync_no_email_count",
+      "breakpoints": true
     }
   ]
 }
