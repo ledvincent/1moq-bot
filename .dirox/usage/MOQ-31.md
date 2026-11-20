@@ -7,3 +7,5 @@
 | 2026-11-12 19:17 | vincent.ledreau@dirox.net | testing | write-test-cases | medium | 160k | 4m 6s |
 | 2026-11-13 10:25 | vincent.ledreau@dirox.net | conversation | conversation | - | 207k | 0s |
 | 2026-11-13 10:25 | vincent.ledreau@dirox.net | building | plan-ticket | high | 799k | 8h 3m |
+| 2026-11-20 14:04 | vincent.ledreau@dirox.net | conversation | conversation | - | 1.8M | 1h 30m |
+| 2026-11-20 14:04 | vincent.ledreau@dirox.net | planning | show-next-step | low | 4.6k | 0s |

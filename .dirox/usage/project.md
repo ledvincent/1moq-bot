@@ -6,3 +6,9 @@
 | 2026-11-12 18:11 | vincent.ledreau@dirox.net | setup | check-setup | low | 81k | 0s |
 | 2026-11-12 18:13 | vincent.ledreau@dirox.net | planning | jira record-config | medium | 114k | 0s |
 | 2026-11-12 18:34 | vincent.ledreau@dirox.net | planning | jira review-backlog | low | 53k | 50s |
+| 2026-11-20 13:46 | vincent.ledreau@dirox.net | setup | check-setup | low | 38k | 0s |
+| 2026-11-20 13:49 | vincent.ledreau@dirox.net | setup | check-setup | low | 7.2k | 0s |
+| 2026-11-20 13:56 | vincent.ledreau@dirox.net | setup | set-up-repo | low | 82k | 1m 8s |
+| 2026-11-20 14:00 | vincent.ledreau@dirox.net | setup | protect-repo | medium | 11k | 0s |
+| 2026-11-20 14:02 | vincent.ledreau@dirox.net | setup | protect-repo | medium | 2.9k | 0s |
+| 2026-11-20 14:03 | vincent.ledreau@dirox.net | setup | check-setup | low | 2.8k | 0s |
