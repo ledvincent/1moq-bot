@@ -13,7 +13,7 @@ const serviceAccountKey = {
   type: 'service_account',
   project_id: 'moq-test',
   client_email: 'sheet-reader@moq-test.iam.gserviceaccount.com',
-  private_key: '-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n',
+  private_key: '-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n', // dirox-security: ignore (placeholder test key, not a real key)
 };
 
 function settingError(load: () => unknown): SettingError {
@@ -133,7 +133,7 @@ describe('config', () => {
       });
       expect(config.googleServiceAccount).toEqual({
         clientEmail: 'sheet-reader@moq-test.iam.gserviceaccount.com',
-        privateKey: '-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n',
+        privateKey: '-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n', // dirox-security: ignore (placeholder test key, not a real key)
       });
     });
 
