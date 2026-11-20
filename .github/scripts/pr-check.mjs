@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // pr-check.mjs: checks on a pull request that closing a change was not skipped: the OKF retro
 // is answered, a finished OpenSpec change is archived, verified and proven by its tests, and the
-// review gates passed (design for a large change, QC and a code review for any code).
+// review gates passed (QC and a code review for any code).
 // Part of dirox-core. /dirox-project:set-up-repo copies it into projects as
 // .github/scripts/pr-check.mjs and replaces it on later runs: do not edit the copy.
 // No dependencies: Node 20 or later. Run by .github/workflows/dirox-checks.yml on pull requests,
@@ -57,9 +57,8 @@
 //      than the author and QC's approver has an approval that still covers it. On a small team
 //      (approval.mjs): QC's approval passes it too when code-reviewers names only the author and
 //      that approver; a "Self-reviewed: <reason>" line passes it when code-reviewers names only the
-//      author, the change is not large, and review-pr's pre-review comment still covers the code.
-//  13. Design gate: the PR's change is large ("Size: large", or "Size: big" before 3.0.0), and no
-//      design reviewer (.github/design-reviewers) approved it on a commit with no code before it.
+//      author and review-pr's pre-review comment still covers the code.
+//  13. (The design gate on large changes, removed in 3.3.3.)
 // Warnings:
 //   4. The PR touches structural paths (schema, dependencies, deployment, env files) and changes
 //      nothing in okf/. The paths come from .github/okf-triggers.json when it exists
@@ -69,9 +68,7 @@
 //      a deliberate rewording looks the same.
 //  15. A ready PR that changes code has an empty "## How to test" section: QC needs the build, the
 //      test accounts and data, and the manual cases to run.
-//  16. A large change passed the design gate, and its proposal.md, design.md or spec deltas changed
-//      after the approved commit: the author tells the design reviewers on the PR. The approval
-//      still counts (design edits do not reopen the gate), so it is never an error.
+//  16. (A large change's design changed after the design approval, removed with the design gate in 3.3.3.)
 
 import fs from "node:fs";
 import path from "node:path";
@@ -124,9 +121,11 @@ function globToRegExp(glob) {
 }
 const matchesAny = (file, globs) => globs.some((g) => globToRegExp(g).test(file));
 
-// A section of the PR description ("Knowledge", "How to test"), without HTML comments; null when absent.
+// A section of the PR description ("Knowledge", "How to test"), without HTML comments and the
+// template's "_Pending: ..._" lines (what fills the section and when, shown until it is filled); null
+// when absent.
 function bodySection(body, heading) {
-  const lines = body.replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?-->/g, "").split("\n");
+  const lines = body.replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?-->/g, "").split("\n").filter((l) => !/^\s*_Pending:.*_\s*$/.test(l));
   const start = lines.findIndex((l) => new RegExp(`^##\\s+${heading}\\b`, "i").test(l.trim()));
   if (start < 0) return null;
   let end = lines.findIndex((l, i) => i > start && /^#{1,2}\s/.test(l.trim()));
@@ -195,17 +194,18 @@ let prBody = process.env.PR_BODY;
   }
 }
 
-// Knowledge is decided where a PR changes okf/ or closes an OpenSpec change (the knowledge retro of
-// finish-ticket). Any other PR (a setup, settings, a chore, a trivial fix, a dependency update) with
+// Knowledge is decided where a PR changes okf/ or closes an OpenSpec change (the knowledge retro at
+// build-ticket's hand-over, or at finish-ticket for what a later fix brought or an older hand-over). Any other PR (a setup, settings, a chore, a trivial fix, a dependency update) with
 // no Knowledge section, or an empty one, is read as "No OKF change".
 const closesChange = changed.some((c) => c.status === "A" && /^openspec\/changes\/archive\/[^/]+\//.test(c.file));
 const written = bodySection(prBody, "Knowledge");
 const knowledge = !written && !okfChanged && !closesChange ? "No OKF change: no change closed and nothing in okf/" : written;
 
 // 1. The Knowledge section is answered, where knowledge is decided.
-// /dirox-ticket:finish-ticket writes this section; the messages say what to put there by hand.
+// /dirox-ticket:build-ticket's hand-over writes this section (/dirox-ticket:finish-ticket for an older
+// hand-over); the messages say what to put there by hand.
 if (knowledge === null) {
-  report("error", 'The PR description has no "## Knowledge" section. Run /dirox-ticket:finish-ticket, or add the section from .github/pull_request_template.md.');
+  report("error", 'The PR description has no "## Knowledge" section. Hand the PR over with /dirox-ticket:build-ticket (/dirox-ticket:finish-ticket for a PR handed over by an older kit), or add the section from .github/pull_request_template.md.');
 } else if (!knowledge) {
   report("error", 'The "Knowledge" section of the PR description is empty. Name the okf/ files this PR adds or changes, or write "No OKF change: <why>".');
 } else {
@@ -243,7 +243,7 @@ for (const { status, file } of changed) {
   if (recorded < needed) { missingTotal += needed - recorded; missingIn.push(`${dir} (${needed} marked, ${recorded} recorded)`); }
 }
 if (missingTotal > excused) {
-  report("error", `Some decisions marked "Decision record needed" have no file in okf/decisions/: ${missingIn.join(", ")}. /dirox-ticket:finish-ticket records them. To leave one out, add a line "No decision record: <decision> - <why>" to the Knowledge section.`, "Decision not recorded");
+  report("error", `Some decisions marked "Decision record needed" have no file in okf/decisions/: ${missingIn.join(", ")}. /dirox-ticket:build-ticket records them at its hand-over (/dirox-ticket:finish-ticket for a PR handed over by an older kit). To leave one out, add a line "No decision record: <decision> - <why>" to the Knowledge section.`, "Decision not recorded");
 }
 
 // 3. A finished change that this PR touches is archived, and an unbuilt one does not merge.
@@ -367,7 +367,7 @@ if (testCases) {
   }
 }
 
-// 11-13. The review gates (approval.mjs, next to this script, also says what counts as code).
+// 11-12. The review gates (approval.mjs, next to this script, also says what counts as code).
 const prKey = keyOf(headRef) || keyOf(archived.map(changeId)[0]);
 let approval = null;
 try {
@@ -375,7 +375,7 @@ try {
 } catch {
   report("error", "approval.mjs is missing next to pr-check.mjs, so the review gates were not checked. Run /dirox-project:set-up-repo.", "Review gates");
 }
-const TITLES = { design: "Design gate", qc: "QC gate", code: "Code review gate" };
+const TITLES = { qc: "QC gate", code: "Code review gate" };
 let code = [];
 if (approval) {
   const { GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, PR_HEAD_SHA, PR_AUTHOR } = process.env;
@@ -405,11 +405,6 @@ if (approval) {
   const comments = online && approval.selfReview?.(prBody) ? await all(`issues/${PR_NUMBER}/comments`) : null;
   code = approval.codeFiles(base, prHead);
   for (const v of approval.checkGates({ reviews: reviews || [], author: PR_AUTHOR, base, head: prHead, key: prKey, body: prBody, comments })) {
-    // 16. The design changed after the design reviewers approved it.
-    if (v.gate === "design" && v.ok && v.needed && v.at) {
-      const moved = approval.designChangedSince(prKey, v.at, prHead);
-      if (moved.length) report("warning", `${prKey}'s design changed after ${v.by} approved it at ${v.at.slice(0, 7)}: ${moved.join(", ")}. Tell the design reviewers on the PR (one comment naming what changed); their approval still counts.`, "Design changed");
-    }
     if (v.ok) continue;
     if (v.reason === "no-reviewers") report("error", approval.explain(v), TITLES[v.gate]);
     else if (!online) report("warning", `${TITLES[v.gate]}: ${prKey || "this PR"} needs an approval from ${v.reviewers.join(", ")}; it could not be checked here (no GitHub token or PR number).`, TITLES[v.gate]);

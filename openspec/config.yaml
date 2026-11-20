@@ -50,7 +50,7 @@ rules:
     - 'When a requirement relies on a domain term, decision, data entity or integration, end its description with "Knowledge: `okf/<folder>/<file>.md`" instead of restating it.'
     - Scenario names are short and unique within the feature, because test names contain them.
   design:
-    - 'Mark every decision that would be costly to reverse (framework, data model, security, hosting, integration) with "Decision record needed", and write it under its own heading in the four parts of an okf/ decision record: Context, Decision, Alternatives considered, Consequences. Reviewers approve that text; /dirox-ticket:finish-ticket copies it into okf/decisions/, so it is written once, here.'
+    - 'Mark every decision that would be costly to reverse (framework, data model, security, hosting, integration) with "Decision record needed", and write it under its own heading in the four parts of an okf/ decision record: Context, Decision, Alternatives considered, Consequences. Reviewers approve that text; /dirox-ticket:build-ticket copies it into okf/decisions/ at its hand-over, so it is written once, here.'
     - Cite the okf/decisions/ and okf/architecture/ files the design follows.
   tasks:
     - Each step leaves the code working and testable.

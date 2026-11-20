@@ -2,8 +2,7 @@
 # (for example @acme/ba-team). /dirox-project:protect-repo makes GitHub require their review on main.
 # The last matching line wins. One owner's approval satisfies a line. GitHub never counts a PR author's
 # own approval: on a two-person project, name both people on every line, so each can approve the other's PR.
-# Behaviour (openspec/) has no owner here: the design gate covers large changes
-# (.github/design-reviewers), and the code reviewer reads a normal change's specs.
+# Behaviour (openspec/) has no owner here: the code reviewer reads a change's specs with its code.
 # The rest of okf/ (the log, data, integrations, runbooks) is reviewed by the code reviewer.
 
 # Knowledge: domain terms belong to whoever defines what to build, decisions and architecture to whoever
