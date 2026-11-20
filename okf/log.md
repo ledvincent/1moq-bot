@@ -1,5 +1,9 @@
 # Knowledge log
 
+## 2026-11-20
+* **Updated**: [Jira](/integrations/jira.md) - kit 3.3.4: added the Path label row; the team now uses the kit labels, by /dirox-project:set-up-repo.
+* **Updated**: [QC](/integrations/qc.md) - kit 3.3.4 command names; the convention now points to the decision that the review gates block merges, by /dirox-project:set-up-repo.
+
 ## 2026-11-12
 * **Updated**: [Jira](/integrations/jira.md) - brought to the kit 3.2.0 template: dropped the QC rows and the proposal stage, `src:intent`, `large`, the Fields section.
 * **Added**: [Review gates block merges again](/decisions/dirox-kit-3-2-0-review-gates-block-merges.md) - the project now has a second account for QC and review, so the gates block merges.
